@@ -35,6 +35,11 @@ interface AppContextValue {
   toggleFavorite: (id: string) => void;
   isFavorite: (id: string) => boolean;
 
+  // Hoteluri salvate
+  savedHotels: string[];
+  toggleHotel: (id: string) => void;
+  isHotelSaved: (id: string) => boolean;
+
   // Comparație
   compareList: string[];
   toggleCompare: (id: string) => void;
@@ -115,6 +120,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [favorites, setFavorites] = useState<string[]>(() =>
     loadStorage<string[]>(STORAGE_KEYS.favorites, []),
   );
+  const [savedHotels, setSavedHotels] = useState<string[]>(() =>
+    loadStorage<string[]>(STORAGE_KEYS.savedHotels, []),
+  );
   const [compareList, setCompareList] = useState<string[]>(() =>
     loadStorage<string[]>(STORAGE_KEYS.compare, []),
   );
@@ -148,6 +156,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => saveStorage(STORAGE_KEYS.language, language), [language]);
   useEffect(() => saveStorage(STORAGE_KEYS.currency, currency), [currency]);
   useEffect(() => saveStorage(STORAGE_KEYS.favorites, favorites), [favorites]);
+  useEffect(() => saveStorage(STORAGE_KEYS.savedHotels, savedHotels), [savedHotels]);
   useEffect(() => saveStorage(STORAGE_KEYS.compare, compareList), [compareList]);
   useEffect(() => saveStorage(STORAGE_KEYS.itineraries, itineraries), [itineraries]);
   useEffect(() => saveStorage(STORAGE_KEYS.conversations, conversations), [conversations]);
@@ -166,6 +175,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     );
   }, []);
   const isFavorite = useCallback((id: string) => favorites.includes(id), [favorites]);
+
+  const toggleHotel = useCallback((id: string) => {
+    setSavedHotels((prev) => (prev.includes(id) ? prev.filter((h) => h !== id) : [...prev, id]));
+  }, []);
+  const isHotelSaved = useCallback((id: string) => savedHotels.includes(id), [savedHotels]);
 
   const toggleCompare = useCallback((id: string) => {
     setCompareList((prev) => {
@@ -230,6 +244,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     favorites,
     toggleFavorite,
     isFavorite,
+    savedHotels,
+    toggleHotel,
+    isHotelSaved,
     compareList,
     toggleCompare,
     clearCompare,

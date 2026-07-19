@@ -12,20 +12,24 @@ import {
   Trash2,
   Sparkles,
   LogIn,
+  BedDouble,
 } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { destinations } from '@/data/destinations';
+import { hotels } from '@/data/hotels';
+import { cheapestRoomPrice } from '@/lib/hotelsService';
 import { itineraryTotalCost } from '@/lib/itinerary';
 import { formatMoney } from '@/lib/format';
 import { tripTypeLabels } from '@/data/content';
 
-type Tab = 'profil' | 'preferinte' | 'itinerare' | 'favorite' | 'conversatii' | 'bugete' | 'notificari';
+type Tab = 'profil' | 'preferinte' | 'itinerare' | 'favorite' | 'hoteluri' | 'conversatii' | 'bugete' | 'notificari';
 
 const tabs: { id: Tab; label: string; icon: typeof User }[] = [
   { id: 'profil', label: 'Profil', icon: User },
   { id: 'preferinte', label: 'Preferințe', icon: Settings },
   { id: 'itinerare', label: 'Itinerarele mele', icon: Map },
   { id: 'favorite', label: 'Favorite', icon: Heart },
+  { id: 'hoteluri', label: 'Hoteluri salvate', icon: BedDouble },
   { id: 'conversatii', label: 'Conversații AI', icon: MessageSquare },
   { id: 'bugete', label: 'Bugete', icon: Wallet },
   { id: 'notificari', label: 'Notificări', icon: Bell },
@@ -81,6 +85,7 @@ export function Account() {
           {tab === 'preferinte' && <PreferencesTab />}
           {tab === 'itinerare' && <ItinerariesTab />}
           {tab === 'favorite' && <FavoritesTab />}
+          {tab === 'hoteluri' && <SavedHotelsTab />}
           {tab === 'conversatii' && <ConversationsTab />}
           {tab === 'bugete' && <BudgetsTab />}
           {tab === 'notificari' && <NotificationsTab />}
@@ -278,6 +283,52 @@ function FavoritesTab() {
           </div>
         </Link>
       ))}
+    </div>
+  );
+}
+
+function SavedHotelsTab() {
+  const { savedHotels, currency, toggleHotel } = useApp();
+  const list = hotels.filter((h) => savedHotels.includes(h.id));
+  if (!list.length)
+    return (
+      <EmptyState
+        icon={<BedDouble size={44} />}
+        title="Niciun hotel salvat"
+        text="Apasă pe inima de pe orice hotel ca să îl salvezi aici."
+        cta={{ to: '/hoteluri', label: 'Vezi hoteluri' }}
+      />
+    );
+  return (
+    <div className="space-y-3">
+      {list.map((h) => {
+        const dest = destinations.find((d) => d.id === h.destinationId);
+        return (
+          <div key={h.id} className="card-surface flex items-center gap-4 p-4">
+            <img src={h.image} alt={h.name} className="h-16 w-20 rounded-xl object-cover" />
+            <div className="min-w-0 flex-1">
+              <p className="font-semibold">
+                {h.name} <span className="text-gold-500">{'★'.repeat(h.stars)}</span>
+              </p>
+              <p className="text-sm text-navy-500 dark:text-sand-200/70">
+                {h.neighborhood}{dest ? `, ${dest.name}` : ''} • {h.reviewScore.toFixed(1)} {h.reviewLabel}
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="text-lg font-bold text-turquoise-600 dark:text-turquoise-300">
+                {formatMoney(cheapestRoomPrice(h), currency)}
+              </p>
+              <p className="text-xs text-navy-400">/ noapte</p>
+            </div>
+            <Link to={`/hoteluri?dest=${h.destinationId}`} className="btn-primary px-4 py-2 text-sm">
+              Vezi
+            </Link>
+            <button onClick={() => toggleHotel(h.id)} className="btn-outline px-3 py-2 text-sm text-red-500">
+              <Trash2 size={15} />
+            </button>
+          </div>
+        );
+      })}
     </div>
   );
 }

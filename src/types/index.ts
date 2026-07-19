@@ -49,6 +49,63 @@ export interface Restaurant {
   note: string;
 }
 
+// ─── Hotel în stil Booking ────────────────────────────────────
+
+export type BoardType = 'fara-masa' | 'mic-dejun' | 'demipensiune' | 'all-inclusive';
+
+export type PropertyType =
+  | 'hotel'
+  | 'resort'
+  | 'apartament'
+  | 'vila'
+  | 'pensiune'
+  | 'hostel'
+  | 'cabana'
+  | 'boutique'
+  | 'aparthotel'
+  | 'bed-breakfast';
+
+export interface HotelRoom {
+  name: string;
+  capacity: number; // persoane
+  beds: string;
+  sizeM2: number;
+  pricePerNight: number; // EUR
+  breakfastIncluded: boolean;
+  freeCancellation: boolean;
+  roomsLeft: number;
+}
+
+export interface BookingHotel {
+  id: string;
+  destinationId: string;
+  name: string;
+  propertyType: PropertyType;
+  stars: number;
+  image: string;
+  gallery: string[];
+  area: 'centrala' | 'linistita';
+  neighborhood: string;
+  distanceFromCenterKm: number;
+  distanceFromBeachKm?: number;
+  reviewScore: number; // 0-10
+  reviewLabel: string; // „Superb", „Fantastic"...
+  reviewCount: number;
+  pricePerNight: number; // EUR, prețul curent
+  oldPricePerNight?: number; // pentru oferte
+  board: BoardType;
+  boardOptions: BoardType[];
+  freeCancellation: boolean;
+  payAtProperty: boolean;
+  breakfastIncluded: boolean;
+  amenities: string[];
+  rooms: HotelRoom[]; // camerele hotelului, fiecare cu preț propriu
+  roomsLeft?: number; // urgență („mai sunt X camere")
+  sustainable: boolean;
+  popularWith: string[];
+  description: string;
+}
+
 export interface Attraction {
   name: string;
   category: string;

@@ -1,4 +1,6 @@
 import { destinations, getDestinationById } from '@/data/destinations';
+import { getHotelsByDestination } from '@/data/hotels';
+import { cheapestRoomPrice } from '@/lib/hotelsService';
 import { getRecommendations } from '@/lib/recommend';
 import { generatePackingList } from '@/lib/packing';
 import { tripTypeLabels } from '@/data/content';
@@ -145,10 +147,17 @@ export function generateDemoReply(
       destinations.find((d) => t.includes(d.name.toLowerCase())) ??
       getDestinationById((prefs.destinationWish as string) ?? '') ??
       destinations[0];
-    const list = dest.hotels.map((h) => `• **${h.name}** ${'⭐'.repeat(h.stars)} — ${h.pricePerNight}€/noapte, nota ${h.rating}. ${h.amenities.slice(0, 2).join(', ')}`).join('\n');
+    const destHotels = [...getHotelsByDestination(dest.id)].sort((a, b) => b.reviewScore - a.reviewScore);
+    const list = destHotels
+      .slice(0, 4)
+      .map(
+        (h) =>
+          `• **${h.name}** ${'⭐'.repeat(h.stars)} — de la ${cheapestRoomPrice(h)}€/noapte, scor ${h.reviewScore.toFixed(1)} (${h.reviewLabel}). ${h.neighborhood}, ${h.rooms.length} tipuri de cameră.`,
+      )
+      .join('\n');
     return {
-      content: `Pentru **${dest.name}** îți recomand:\n\n${list}\n\nAm inclus variante de la lux la accesibil. Ți-am ales opțiuni în zonă ${dest.hotels[0].area === 'centrala' ? 'centrală și liniștită' : 'variată'}, în funcție de ce cauți. Vrei să estimez bugetul total al sejurului?`,
-      suggestions: ['Estimează bugetul', 'Vreau un itinerar', 'Ce activități sunt acolo?'],
+      content: `Pentru **${dest.name}** am ${destHotels.length} hoteluri. Cele mai bine cotate:\n\n${list}\n\nFiecare are mai multe tipuri de cameră, cu prețuri diferite, anulare gratuită și opțiuni de mic dejun. Deschide pagina **Hoteluri** ca să vezi toate camerele și să filtrezi după preț, stele sau scor. Vrei să estimez bugetul total al sejurului?`,
+      suggestions: ['Vreau toate hotelurile', 'Estimează bugetul', 'Ce activități sunt acolo?'],
     };
   }
 

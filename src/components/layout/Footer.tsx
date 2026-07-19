@@ -41,6 +41,7 @@ export function Footer() {
           title="Explorează"
           links={[
             { label: 'Descoperă destinații', to: '/descopera' },
+            { label: 'Hoteluri', to: '/hoteluri' },
             { label: 'Planifică o călătorie', to: '/planifica' },
             { label: 'Itinerariile mele', to: '/itinerariile-mele' },
             { label: 'Favorite', to: '/favorite' },

@@ -7,6 +7,7 @@ export const translations = {
   ro: {
     'nav.home': 'Acasă',
     'nav.discover': 'Descoperă destinații',
+    'nav.hotels': 'Hoteluri',
     'nav.plan': 'Planifică o călătorie',
     'nav.itineraries': 'Itinerariile mele',
     'nav.favorites': 'Favorite',
@@ -52,6 +53,7 @@ export const translations = {
   en: {
     'nav.home': 'Home',
     'nav.discover': 'Discover destinations',
+    'nav.hotels': 'Hotels',
     'nav.plan': 'Plan a trip',
     'nav.itineraries': 'My itineraries',
     'nav.favorites': 'Favorites',

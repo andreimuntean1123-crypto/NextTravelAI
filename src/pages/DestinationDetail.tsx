@@ -16,12 +16,16 @@ import {
   ArrowLeft,
 } from 'lucide-react';
 import { getDestinationById } from '@/data/destinations';
+import { getHotelsByDestination } from '@/data/hotels';
+import { cheapestRoomPrice } from '@/lib/hotelsService';
+import { HotelDetailModal } from '@/components/hotels/HotelDetailModal';
 import { useApp } from '@/context/AppContext';
 import { useCreateItinerary } from '@/hooks/useCreateItinerary';
 import { WeatherWidget } from '@/components/tools/WeatherWidget';
 import { StarRating } from '@/components/ui/StarRating';
 import { formatMoney, formatTemp, formatDuration } from '@/lib/format';
 import { tripTypeLabels } from '@/data/content';
+import type { BookingHotel } from '@/types';
 
 export function DestinationDetail() {
   const { id } = useParams();
@@ -29,6 +33,8 @@ export function DestinationDetail() {
   const { currency, isFavorite, toggleFavorite, compareList, toggleCompare } = useApp();
   const createItinerary = useCreateItinerary();
   const [activeImg, setActiveImg] = useState(0);
+  const [selectedHotel, setSelectedHotel] = useState<BookingHotel | null>(null);
+  const destHotels = getHotelsByDestination(id ?? '');
 
   if (!dest) {
     return (
@@ -149,31 +155,50 @@ export function DestinationDetail() {
           </Section>
 
           {/* Hotels */}
-          <Section icon={<BedDouble size={18} />} title="Cazare recomandată">
+          <section>
+            <div className="mb-3 flex items-center justify-between">
+              <h3 className="flex items-center gap-2 text-lg font-semibold">
+                <span className="text-turquoise-500"><BedDouble size={18} /></span>
+                Hoteluri în {dest.name} <span className="text-navy-400">({destHotels.length})</span>
+              </h3>
+              <Link to={`/hoteluri?dest=${dest.id}`} className="text-sm font-semibold text-turquoise-600 dark:text-turquoise-300">
+                Vezi toate →
+              </Link>
+            </div>
             <div className="space-y-3">
-              {dest.hotels.map((h) => (
-                <div key={h.name} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-navy-100 p-4 dark:border-navy-800">
-                  <div>
+              {destHotels.slice(0, 4).map((h) => (
+                <button
+                  key={h.id}
+                  onClick={() => setSelectedHotel(h)}
+                  className="flex w-full items-center gap-3 rounded-2xl border border-navy-100 p-3 text-left transition hover:border-turquoise-400 dark:border-navy-800"
+                >
+                  <img src={h.image} alt={h.name} className="h-20 w-24 shrink-0 rounded-xl object-cover" />
+                  <div className="min-w-0 flex-1">
                     <p className="font-medium">
                       {h.name} <span className="text-gold-500">{'★'.repeat(h.stars)}</span>
                     </p>
-                    <p className="text-sm text-navy-500 dark:text-sand-200/70">
-                      {h.amenities.join(' • ')}
+                    <p className="text-xs text-navy-500 dark:text-sand-200/70">
+                      {h.neighborhood} • {h.distanceFromCenterKm} km de centru • {h.rooms.length} tipuri de cameră
                     </p>
-                    <p className="mt-1 text-xs text-navy-400">
-                      Zonă {h.area === 'centrala' ? 'centrală' : 'liniștită'} • nota {h.rating}
-                    </p>
+                    <div className="mt-1 flex items-center gap-2">
+                      <span className="grid h-6 min-w-6 place-items-center rounded bg-navy-800 px-1.5 text-xs font-bold text-white dark:bg-turquoise-500 dark:text-navy-950">
+                        {h.reviewScore.toFixed(1)}
+                      </span>
+                      <span className="text-xs font-medium">{h.reviewLabel}</span>
+                      <span className="text-xs text-navy-400">({h.reviewCount.toLocaleString('ro-RO')})</span>
+                    </div>
                   </div>
-                  <div className="text-right">
+                  <div className="shrink-0 text-right">
+                    <p className="text-xs text-navy-400">de la</p>
                     <p className="text-lg font-bold text-turquoise-600 dark:text-turquoise-300">
-                      {formatMoney(h.pricePerNight, currency)}
+                      {formatMoney(cheapestRoomPrice(h), currency)}
                     </p>
                     <p className="text-xs text-navy-400">/ noapte</p>
                   </div>
-                </div>
+                </button>
               ))}
             </div>
-          </Section>
+          </section>
 
           {/* Restaurants */}
           <Section icon={<Utensils size={18} />} title="Restaurante recomandate">
@@ -220,6 +245,9 @@ export function DestinationDetail() {
                 <Scale size={15} /> Compară
               </Link>
             </div>
+            <Link to={`/hoteluri?dest=${dest.id}`} className="btn-outline mt-2 w-full justify-center py-2.5 text-sm">
+              <BedDouble size={15} /> Vezi toate hotelurile ({destHotels.length})
+            </Link>
           </div>
 
           <WeatherWidget destination={dest} />
@@ -246,6 +274,8 @@ export function DestinationDetail() {
           </div>
         </aside>
       </div>
+
+      <HotelDetailModal hotel={selectedHotel} nights={dest.recommendedDays} onClose={() => setSelectedHotel(null)} />
     </div>
   );
 }

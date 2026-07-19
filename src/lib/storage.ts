@@ -33,6 +33,7 @@ export const STORAGE_KEYS = {
   language: 'language',
   currency: 'currency',
   favorites: 'favorites',
+  savedHotels: 'savedHotels',
   itineraries: 'itineraries',
   preferences: 'preferences',
   conversations: 'conversations',

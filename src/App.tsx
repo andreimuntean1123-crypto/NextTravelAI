@@ -10,6 +10,7 @@ import { Home } from '@/pages/Home';
 
 // Paginile mai grele sunt încărcate la cerere (code-splitting) pentru viteză.
 const Discover = lazy(() => import('@/pages/Discover').then((m) => ({ default: m.Discover })));
+const Hotels = lazy(() => import('@/pages/Hotels').then((m) => ({ default: m.Hotels })));
 const Plan = lazy(() => import('@/pages/Plan').then((m) => ({ default: m.Plan })));
 const Results = lazy(() => import('@/pages/Results').then((m) => ({ default: m.Results })));
 const DestinationDetail = lazy(() =>
@@ -49,6 +50,7 @@ export default function App() {
                 <Routes>
                   <Route path="/" element={<Home />} />
                   <Route path="/descopera" element={<Discover />} />
+                  <Route path="/hoteluri" element={<Hotels />} />
                   <Route path="/planifica" element={<Plan />} />
                   <Route path="/rezultate" element={<Results />} />
                   <Route path="/destinatie/:id" element={<DestinationDetail />} />
