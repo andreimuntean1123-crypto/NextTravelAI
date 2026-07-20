@@ -18,7 +18,7 @@ export function Compare() {
           <p className="mt-2 text-navy-500 dark:text-sand-200/70">
             Apasă butonul „Compară" pe destinații (maxim 3) pentru a le vedea una lângă alta.
           </p>
-          <Link to="/descopera" className="btn-primary mx-auto mt-6 inline-flex px-5 py-2.5 text-sm">
+          <Link to="/orase" className="btn-primary mx-auto mt-6 inline-flex px-5 py-2.5 text-sm">
             <Compass size={16} /> Descoperă destinații
           </Link>
         </div>

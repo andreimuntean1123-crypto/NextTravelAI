@@ -6,7 +6,6 @@ import type { Language } from '@/types';
 export const translations = {
   ro: {
     'nav.home': 'Acasă',
-    'nav.discover': 'Descoperă destinații',
     'nav.cities': 'Orașe',
     'nav.hotels': 'Hoteluri',
     'nav.plan': 'Planifică o călătorie',
@@ -53,7 +52,6 @@ export const translations = {
   },
   en: {
     'nav.home': 'Home',
-    'nav.discover': 'Discover destinations',
     'nav.cities': 'Cities',
     'nav.hotels': 'Hotels',
     'nav.plan': 'Plan a trip',

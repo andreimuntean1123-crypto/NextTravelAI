@@ -84,7 +84,7 @@ export function About() {
             <button onClick={open} className="btn-primary px-6 py-3 text-sm">
               <Sparkles size={16} /> Planifică vacanța cu AI
             </button>
-            <Link to="/descopera" className="btn-outline px-6 py-3 text-sm">
+            <Link to="/orase" className="btn-outline px-6 py-3 text-sm">
               Explorează destinații
             </Link>
           </div>

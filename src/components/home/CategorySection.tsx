@@ -29,7 +29,7 @@ export function CategorySection({
 
   if (!list.length) return null;
 
-  const linkTo = filterTag ? `/descopera?type=${filterTag}` : '/descopera';
+  const linkTo = filterTag ? `/orase?type=${filterTag}` : '/orase';
 
   return (
     <section className={tinted ? 'bg-sand-100/60 py-14 dark:bg-navy-900/40' : 'container-page py-14'}>

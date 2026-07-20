@@ -40,7 +40,6 @@ export function Footer() {
         <FooterCol
           title="Explorează"
           links={[
-            { label: 'Descoperă destinații', to: '/descopera' },
             { label: 'Orașe populare', to: '/orase' },
             { label: 'Hoteluri', to: '/hoteluri' },
             { label: 'Planifică o călătorie', to: '/planifica' },

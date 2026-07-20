@@ -236,7 +236,7 @@ function ItinerariesTab() {
         icon={<Map size={44} />}
         title="Niciun itinerar salvat"
         text="Creează un itinerar dintr-o destinație și îl regăsești aici."
-        cta={{ to: '/descopera', label: 'Descoperă destinații' }}
+        cta={{ to: '/orase', label: 'Descoperă destinații' }}
       />
     );
   return (
@@ -269,7 +269,7 @@ function FavoritesTab() {
         icon={<Heart size={44} />}
         title="Nicio destinație favorită"
         text="Salvează destinațiile care îți plac apăsând pe inimă."
-        cta={{ to: '/descopera', label: 'Descoperă destinații' }}
+        cta={{ to: '/orase', label: 'Descoperă destinații' }}
       />
     );
   return (

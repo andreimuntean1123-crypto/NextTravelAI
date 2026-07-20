@@ -33,7 +33,7 @@ export function Favorites() {
           <p className="mt-2 max-w-sm text-navy-500 dark:text-sand-200/70">
             Apasă pe inima de pe orice destinație ca să o adaugi aici.
           </p>
-          <Link to="/descopera" className="btn-primary mt-6 px-5 py-2.5 text-sm">
+          <Link to="/orase" className="btn-primary mt-6 px-5 py-2.5 text-sm">
             <Compass size={16} /> Descoperă destinații
           </Link>
         </div>

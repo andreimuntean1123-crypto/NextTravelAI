@@ -64,7 +64,7 @@ export function Results() {
           <button onClick={open} className="btn-primary px-4 py-2 text-sm">
             <Wand2 size={15} /> Refă chestionarul
           </button>
-          <Link to="/descopera" className="btn border border-white/30 bg-white/10 px-4 py-2 text-sm text-white hover:bg-white/20">
+          <Link to="/orase" className="btn border border-white/30 bg-white/10 px-4 py-2 text-sm text-white hover:bg-white/20">
             Vezi toate destinațiile
           </Link>
         </div>

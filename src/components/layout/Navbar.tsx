@@ -16,7 +16,6 @@ import type { Currency, Language } from '@/types';
 
 const navKeys = [
   { to: '/', key: 'nav.home' as const },
-  { to: '/descopera', key: 'nav.discover' as const },
   { to: '/orase', key: 'nav.cities' as const },
   { to: '/hoteluri', key: 'nav.hotels' as const },
   { to: '/planifica', key: 'nav.plan' as const },

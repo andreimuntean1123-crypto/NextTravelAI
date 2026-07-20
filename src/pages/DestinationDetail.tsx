@@ -40,7 +40,7 @@ export function DestinationDetail() {
     return (
       <div className="container-page py-20 text-center">
         <h1 className="text-2xl font-bold">Destinația nu a fost găsită</h1>
-        <Link to="/descopera" className="btn-primary mx-auto mt-6 inline-flex px-5 py-2.5 text-sm">
+        <Link to="/orase" className="btn-primary mx-auto mt-6 inline-flex px-5 py-2.5 text-sm">
           Descoperă destinații
         </Link>
       </div>
@@ -57,7 +57,7 @@ export function DestinationDetail() {
         <img src={gallery[activeImg]} alt={dest.name} className="h-[45vh] w-full object-cover sm:h-[55vh]" />
         <div className="absolute inset-0 bg-gradient-to-t from-navy-950/85 via-navy-950/20 to-navy-950/30" />
         <div className="container-page absolute inset-x-0 top-4">
-          <Link to="/descopera" className="btn border border-white/30 bg-white/10 px-3 py-2 text-sm text-white backdrop-blur hover:bg-white/20">
+          <Link to="/orase" className="btn border border-white/30 bg-white/10 px-3 py-2 text-sm text-white backdrop-blur hover:bg-white/20">
             <ArrowLeft size={16} /> Înapoi
           </Link>
         </div>

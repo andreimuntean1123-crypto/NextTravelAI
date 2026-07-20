@@ -15,7 +15,7 @@ export function OffersSection() {
         eyebrow="Prețuri limitate"
         title="Oferte speciale"
         subtitle="Reduceri selectate de agentul nostru pentru cea mai bună valoare."
-        linkTo="/descopera"
+        linkTo="/orase"
       />
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {offers.map((offer) => {

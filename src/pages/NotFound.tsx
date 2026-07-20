@@ -13,7 +13,7 @@ export function NotFound() {
         <Link to="/" className="btn-primary px-5 py-2.5 text-sm">
           <Home size={16} /> Acasă
         </Link>
-        <Link to="/descopera" className="btn-outline px-5 py-2.5 text-sm">
+        <Link to="/orase" className="btn-outline px-5 py-2.5 text-sm">
           <Compass size={16} /> Descoperă destinații
         </Link>
       </div>

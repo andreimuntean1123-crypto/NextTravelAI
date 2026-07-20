@@ -188,11 +188,11 @@ export const destinations: Destination[] = [
     name: 'Zermatt',
     country: 'Elveția',
     region: 'Valais / Alpi',
-    image: img('photo-1531366936337-7c912a4589a7'),
+    image: img('photo-1483728642387-6c3bdd6c93e5'),
     gallery: [
-      img('photo-1531366936337-7c912a4589a7'),
-      img('photo-1502786129293-79981df4e689'),
       img('photo-1483728642387-6c3bdd6c93e5'),
+      img('photo-1502786129293-79981df4e689'),
+      img('photo-1527668752968-14dc70a27c95'),
     ],
     shortDescription: 'Matterhorn, pârtii perfecte și sat fără mașini.',
     description:
@@ -364,9 +364,9 @@ export const destinations: Destination[] = [
     name: 'Costa Rica',
     country: 'Costa Rica',
     region: 'America Centrală',
-    image: img('photo-1518183214770-9cffbec72538'),
+    image: img('photo-1441974231531-c6227db76b6e'),
     gallery: [
-      img('photo-1518183214770-9cffbec72538'),
+      img('photo-1441974231531-c6227db76b6e'),
       img('photo-1536431311719-398b6704d4cc'),
       img('photo-1502085671122-2d218cd434e6'),
     ],

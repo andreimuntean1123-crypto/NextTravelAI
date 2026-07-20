@@ -25,7 +25,7 @@ export function Hero({ onPlanClick }: HeroProps) {
     if (type) params.set('type', type);
     if (budget) params.set('budget', budget);
     if (people) params.set('people', String(people));
-    navigate(`/descopera?${params.toString()}`);
+    navigate(`/orase?${params.toString()}`);
   };
 
   return (
@@ -55,10 +55,10 @@ export function Hero({ onPlanClick }: HeroProps) {
               <Sparkles size={18} /> {t('cta.planAi')}
             </button>
             <button
-              onClick={() => navigate('/descopera')}
+              onClick={() => navigate('/orase')}
               className="btn px-7 py-3.5 text-base border border-white/30 bg-white/10 text-white backdrop-blur hover:bg-white/20"
             >
-              <Compass size={18} /> {t('nav.discover')}
+              <Compass size={18} /> {t('nav.cities')}
             </button>
           </div>
         </div>
