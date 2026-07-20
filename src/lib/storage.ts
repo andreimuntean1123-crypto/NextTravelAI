@@ -42,4 +42,6 @@ export const STORAGE_KEYS = {
   compare: 'compare',
   profile: 'profile',
   newsletter: 'newsletter',
+  user: 'user',
+  activity: 'activity',
 } as const;

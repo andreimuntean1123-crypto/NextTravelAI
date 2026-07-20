@@ -32,7 +32,7 @@ export function RecommendationCard({ rec, rank }: { rec: Recommendation; rank: n
             #{rank} recomandare
           </span>
           <button
-            onClick={() => toggleFavorite(d.id)}
+            onClick={() => toggleFavorite(d.id, `${d.name}, ${d.country}`)}
             className="absolute right-3 top-3 grid h-10 w-10 place-items-center rounded-full bg-white/90 backdrop-blur transition hover:scale-110"
             aria-label="Favorite"
           >
@@ -114,7 +114,7 @@ export function RecommendationCard({ rec, rank }: { rec: Recommendation; rank: n
               <Map size={16} /> Vezi itinerarul
             </button>
             <button
-              onClick={() => toggleFavorite(d.id)}
+              onClick={() => toggleFavorite(d.id, `${d.name}, ${d.country}`)}
               className="btn-outline px-4 py-2.5 text-sm"
             >
               <Heart size={16} className={isFavorite(d.id) ? 'fill-red-500 text-red-500' : ''} />

@@ -9,6 +9,7 @@ import {
   BedDouble,
   SlidersHorizontal,
   X,
+  Heart,
 } from 'lucide-react';
 import { cities, continents, cityCountries, totalCities, type Continent } from '@/data/cities';
 import { cityCheapestHotel } from '@/lib/cityHotels';
@@ -24,7 +25,7 @@ const priceTierLabels: Record<1 | 2 | 3, string> = {
 };
 
 export function Cities() {
-  const { currency } = useApp();
+  const { currency, isFavorite, toggleFavorite } = useApp();
   const [params] = useSearchParams();
 
   const [query, setQuery] = useState(params.get('q') ?? '');
@@ -262,6 +263,20 @@ export function Cities() {
                     <span className="absolute right-2 top-2 rounded-full bg-white/85 px-2 py-0.5 text-[10px] font-semibold text-navy-700 backdrop-blur">
                       {c.continent}
                     </span>
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        toggleFavorite(c.id, `${c.name}, ${c.country}`);
+                      }}
+                      aria-label="Adaugă la favorite"
+                      className="absolute left-2 top-2 grid h-8 w-8 place-items-center rounded-full bg-white/90 backdrop-blur transition hover:scale-110"
+                    >
+                      <Heart
+                        size={15}
+                        className={isFavorite(c.id) ? 'fill-red-500 text-red-500' : 'text-navy-600'}
+                      />
+                    </button>
                     <div className="absolute bottom-2 left-3 right-3 text-white">
                       <h3 className="font-display text-lg font-semibold drop-shadow">{c.name}</h3>
                       <p className="flex items-center gap-1 text-xs text-sand-100/90">

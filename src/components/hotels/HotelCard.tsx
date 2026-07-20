@@ -29,7 +29,7 @@ export function HotelCard({ hotel: h, nights = 1, onOpen }: Props) {
           className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
         />
         <button
-          onClick={() => toggleHotel(h.id)}
+          onClick={() => toggleHotel(h.id, h.name)}
           className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-white/90 backdrop-blur transition hover:scale-110"
           aria-label="Salvează hotelul"
         >

@@ -158,3 +158,101 @@ export const slotLabels: Record<string, { label: string; icon: string }> = {
   'dupa-amiaza': { label: 'După-amiaza', icon: '🌤️' },
   seara: { label: 'Seara', icon: '🌙' },
 };
+
+// ─── Itinerar generic pentru un oraș (fără date curate detaliate) ──
+
+const CITY_MORNING = [
+  'Tur al centrului istoric din',
+  'Vizită la muzeul principal din',
+  'Plimbare prin piața centrală din',
+  'Explorarea cartierului vechi din',
+  'Punct panoramic asupra orașului',
+];
+const CITY_AFTERNOON = [
+  'Parcul central și zona verde',
+  'Cartierul artelor și galerii',
+  'Tur de shopping local',
+  'Croazieră / plimbare pe malul apei',
+  'Atracție emblematică a orașului',
+];
+
+export function generateCityItinerary(
+  city: { id: string; name: string; country: string; image: string },
+  days: number,
+  people: number,
+  pace: Pace = 'echilibrat',
+): Itinerary {
+  const slots = paceSlots[pace];
+  const itineraryDays: ItineraryDay[] = [];
+
+  for (let d = 0; d < days; d++) {
+    const activities: ItineraryActivity[] = [];
+    activities.push({
+      id: uid(),
+      slot: 'dimineata',
+      title: `${CITY_MORNING[d % CITY_MORNING.length]} ${city.name}`,
+      type: 'obiectiv',
+      durationHours: 2.5,
+      cost: 12 * people,
+      distanceKm: Number((1 + (d % 3)).toFixed(1)),
+      tip: 'Pornește devreme pentru a evita aglomerația.',
+    });
+    activities.push({
+      id: uid(),
+      slot: 'pranz',
+      title: `Prânz într-un restaurant local din ${city.name}`,
+      type: 'masa',
+      durationHours: 1.5,
+      cost: 18 * people,
+      distanceKm: 0.7,
+      tip: 'Încearcă un fel de mâncare tradițional.',
+    });
+    if (slots >= 3) {
+      activities.push({
+        id: uid(),
+        slot: 'dupa-amiaza',
+        title: CITY_AFTERNOON[d % CITY_AFTERNOON.length],
+        type: 'activitate',
+        durationHours: 2.5,
+        cost: 15 * people,
+        distanceKm: Number((1.5 + (d % 4)).toFixed(1)),
+        tip: 'Ritm relaxat, timp pentru fotografii.',
+      });
+    } else {
+      activities.push({
+        id: uid(),
+        slot: 'dupa-amiaza',
+        title: 'Timp liber & relaxare',
+        type: 'relaxare',
+        durationHours: 2,
+        cost: 0,
+        tip: 'Savurează atmosfera locului.',
+      });
+    }
+    activities.push({
+      id: uid(),
+      slot: 'seara',
+      title: `Cină cu specific local în ${city.name}`,
+      type: 'masa',
+      durationHours: 2,
+      cost: 26 * people,
+      distanceKm: 1,
+      tip: 'Rezervă din timp în weekend.',
+    });
+
+    itineraryDays.push({ day: d + 1, title: dayTitle(d, { name: city.name } as Destination), activities });
+  }
+
+  return {
+    id: `itin-${city.id}-${Date.now()}`,
+    destinationId: city.id,
+    destinationName: city.name,
+    country: city.country,
+    image: city.image,
+    days: itineraryDays,
+    people,
+    totalDays: days,
+    createdAt: Date.now(),
+    pace,
+  };
+}

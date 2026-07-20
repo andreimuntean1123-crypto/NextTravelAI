@@ -233,7 +233,7 @@ export function DestinationDetail() {
               <Map size={16} /> Creează itinerarul
             </button>
             <div className="mt-2 flex gap-2">
-              <button onClick={() => toggleFavorite(dest.id)} className="btn-outline flex-1 py-2.5 text-sm">
+              <button onClick={() => toggleFavorite(dest.id, `${dest.name}, ${dest.country}`)} className="btn-outline flex-1 py-2.5 text-sm">
                 <Heart size={15} className={isFavorite(dest.id) ? 'fill-red-500 text-red-500' : ''} />
                 {isFavorite(dest.id) ? 'Salvat' : 'Favorite'}
               </button>

@@ -12,9 +12,13 @@ import {
   Trash2,
   Sparkles,
   LogIn,
+  LogOut,
   BedDouble,
+  Activity as ActivityIcon,
 } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
+import { AuthModal } from '@/components/auth/AuthModal';
+import { formatDateTime } from '@/lib/auth';
 import { destinations } from '@/data/destinations';
 import { hotels } from '@/data/hotels';
 import { cheapestRoomPrice } from '@/lib/hotelsService';
@@ -22,10 +26,11 @@ import { itineraryTotalCost } from '@/lib/itinerary';
 import { formatMoney } from '@/lib/format';
 import { tripTypeLabels } from '@/data/content';
 
-type Tab = 'profil' | 'preferinte' | 'itinerare' | 'favorite' | 'hoteluri' | 'conversatii' | 'bugete' | 'notificari';
+type Tab = 'profil' | 'activitate' | 'preferinte' | 'itinerare' | 'favorite' | 'hoteluri' | 'conversatii' | 'bugete' | 'notificari';
 
 const tabs: { id: Tab; label: string; icon: typeof User }[] = [
   { id: 'profil', label: 'Profil', icon: User },
+  { id: 'activitate', label: 'Activitate recentă', icon: ActivityIcon },
   { id: 'preferinte', label: 'Preferințe', icon: Settings },
   { id: 'itinerare', label: 'Itinerarele mele', icon: Map },
   { id: 'favorite', label: 'Favorite', icon: Heart },
@@ -43,13 +48,19 @@ export function Account() {
   return (
     <div className="container-page py-10">
       <div className="mb-8 flex items-center gap-4">
-        <span className="grid h-16 w-16 place-items-center rounded-2xl bg-gradient-to-br from-turquoise-400 to-navy-700 text-2xl font-bold text-white">
-          {app.profile.name.charAt(0)}
+        <span className="grid h-16 w-16 place-items-center overflow-hidden rounded-2xl bg-gradient-to-br from-turquoise-400 to-navy-700 text-2xl font-bold text-white">
+          {app.user?.picture ? (
+            <img src={app.user.picture} alt={app.user.name} className="h-full w-full object-cover" />
+          ) : (
+            (app.user?.name ?? app.profile.name).charAt(0).toUpperCase()
+          )}
         </span>
         <div>
-          <h1 className="text-2xl font-bold">{app.profile.name}</h1>
+          <h1 className="text-2xl font-bold">{app.user?.name ?? app.profile.name}</h1>
           <p className="text-sm text-navy-500 dark:text-sand-200/70">
-            Membru din {new Date(app.profile.memberSince).toLocaleDateString('ro-RO', { month: 'long', year: 'numeric' })}
+            {app.user
+              ? app.user.email || (app.user.provider === 'google' ? 'Cont Google' : 'Cont demo')
+              : `Membru din ${new Date(app.profile.memberSince).toLocaleDateString('ro-RO', { month: 'long', year: 'numeric' })}`}
           </p>
         </div>
       </div>
@@ -82,6 +93,7 @@ export function Account() {
         {/* Content */}
         <div>
           {tab === 'profil' && <ProfileTab />}
+          {tab === 'activitate' && <ActivityTab />}
           {tab === 'preferinte' && <PreferencesTab />}
           {tab === 'itinerare' && <ItinerariesTab />}
           {tab === 'favorite' && <FavoritesTab />}
@@ -96,9 +108,10 @@ export function Account() {
 }
 
 function ProfileTab() {
-  const { profile, updateProfile, theme, toggleTheme, language, setLanguage, currency, setCurrency } = useApp();
+  const { profile, updateProfile, theme, toggleTheme, language, setLanguage, currency, setCurrency, user, signOut } = useApp();
   const [saved, setSaved] = useState(false);
   const [form, setForm] = useState(profile);
+  const [authOpen, setAuthOpen] = useState(false);
 
   const save = () => {
     updateProfile(form);
@@ -108,6 +121,33 @@ function ProfileTab() {
 
   return (
     <div className="space-y-6">
+      {/* Autentificare */}
+      <div className="card-surface flex flex-wrap items-center justify-between gap-4 p-6">
+        <div className="flex items-center gap-3">
+          <span className="grid h-11 w-11 place-items-center rounded-xl bg-turquoise-50 text-turquoise-600 dark:bg-navy-800">
+            <LogIn size={20} />
+          </span>
+          <div>
+            <p className="font-semibold">{user ? 'Ești conectat' : 'Nu ești conectat'}</p>
+            <p className="text-sm text-navy-500 dark:text-sand-200/70">
+              {user
+                ? `${user.name}${user.email ? ` · ${user.email}` : ''}`
+                : 'Conectează-te prin Google sau email ca să îți salvezi datele.'}
+            </p>
+          </div>
+        </div>
+        {user ? (
+          <button onClick={signOut} className="btn-outline px-4 py-2.5 text-sm text-red-500">
+            <LogOut size={16} /> Deconectează-te
+          </button>
+        ) : (
+          <button onClick={() => setAuthOpen(true)} className="btn-primary px-4 py-2.5 text-sm">
+            <LogIn size={16} /> Conectează-te
+          </button>
+        )}
+        <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
+      </div>
+
       <div className="card-surface p-6">
         <h2 className="mb-4 text-lg font-semibold">Detalii profil</h2>
         <div className="grid gap-4 sm:grid-cols-2">
@@ -170,6 +210,58 @@ function ProfileTab() {
           </p>
         </div>
       </div>
+    </div>
+  );
+}
+
+const ACTIVITY_META: Record<string, { icon: typeof Heart; color: string }> = {
+  auth: { icon: LogIn, color: 'text-navy-500' },
+  favorite: { icon: Heart, color: 'text-red-500' },
+  unfavorite: { icon: Heart, color: 'text-navy-400' },
+  itinerar: { icon: Map, color: 'text-turquoise-600' },
+  chat: { icon: MessageSquare, color: 'text-turquoise-600' },
+  buget: { icon: Wallet, color: 'text-gold-500' },
+  hotel: { icon: BedDouble, color: 'text-turquoise-600' },
+  search: { icon: Sparkles, color: 'text-navy-500' },
+};
+
+function ActivityTab() {
+  const { activity, clearActivity } = useApp();
+
+  if (!activity.length)
+    return (
+      <EmptyState
+        icon={<ActivityIcon size={44} />}
+        title="Nicio activitate încă"
+        text="Aici apar acțiunile tale recente (favorite, itinerare, conversații cu AI, bugete) — cu ziua și ora."
+      />
+    );
+
+  return (
+    <div>
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="text-lg font-semibold">Activitate recentă</h2>
+        <button onClick={clearActivity} className="flex items-center gap-1 text-sm text-red-500">
+          <Trash2 size={14} /> Golește istoricul
+        </button>
+      </div>
+      <ol className="relative space-y-3 border-l border-navy-100 pl-5 dark:border-navy-800">
+        {activity.map((a) => {
+          const meta = ACTIVITY_META[a.type] ?? ACTIVITY_META.search;
+          const Icon = meta.icon;
+          return (
+            <li key={a.id} className="relative">
+              <span className="absolute -left-[27px] grid h-6 w-6 place-items-center rounded-full bg-white shadow-soft dark:bg-navy-900">
+                <Icon size={13} className={meta.color} />
+              </span>
+              <div className="card-surface p-3">
+                <p className="text-sm">{a.text}</p>
+                <p className="mt-0.5 text-xs text-navy-400">{formatDateTime(a.date)}</p>
+              </div>
+            </li>
+          );
+        })}
+      </ol>
     </div>
   );
 }
@@ -323,7 +415,7 @@ function SavedHotelsTab() {
             <Link to={`/hoteluri?dest=${h.destinationId}`} className="btn-primary px-4 py-2 text-sm">
               Vezi
             </Link>
-            <button onClick={() => toggleHotel(h.id)} className="btn-outline px-3 py-2 text-sm text-red-500">
+            <button onClick={() => toggleHotel(h.id, h.name)} className="btn-outline px-3 py-2 text-sm text-red-500">
               <Trash2 size={15} />
             </button>
           </div>

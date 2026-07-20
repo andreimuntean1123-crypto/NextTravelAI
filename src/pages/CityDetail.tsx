@@ -1,8 +1,10 @@
 import { useMemo, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, MapPin, BedDouble, Star, SlidersHorizontal, X } from 'lucide-react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { ArrowLeft, MapPin, BedDouble, Star, SlidersHorizontal, X, Heart, Map as MapIcon } from 'lucide-react';
 import { getCityById } from '@/data/cities';
 import { getCityHotels } from '@/lib/cityHotels';
+import { generateCityItinerary } from '@/lib/itinerary';
+import { useApp } from '@/context/AppContext';
 import { cheapestRoomPrice, type HotelSort } from '@/lib/hotelsService';
 import { HotelCard } from '@/components/hotels/HotelCard';
 import { HotelDetailModal } from '@/components/hotels/HotelDetailModal';
@@ -11,6 +13,8 @@ import type { BookingHotel, PropertyType } from '@/types';
 
 export function CityDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const { saveItinerary, isFavorite, toggleFavorite } = useApp();
   const city = getCityById(id ?? '');
   const [selected, setSelected] = useState<BookingHotel | null>(null);
   const [nights, setNights] = useState(3);
@@ -80,6 +84,30 @@ export function CityDetail() {
           <p className="mt-2 flex items-center gap-1.5 text-sm text-sand-100/90">
             <BedDouble size={15} /> {allHotels.length} hoteluri disponibile în {city.name}
           </p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <button
+              onClick={() => {
+                const it = generateCityItinerary(
+                  { id: city.id, name: city.name, country: city.country, image: city.image },
+                  nights,
+                  2,
+                  'echilibrat',
+                );
+                saveItinerary(it);
+                navigate(`/itinerar/${it.id}`);
+              }}
+              className="btn-primary px-5 py-2.5 text-sm"
+            >
+              <MapIcon size={16} /> Creează itinerar ({nights} {nights === 1 ? 'zi' : 'zile'})
+            </button>
+            <button
+              onClick={() => toggleFavorite(city.id, `${city.name}, ${city.country}`)}
+              className="btn border border-white/30 bg-white/10 px-4 py-2.5 text-sm text-white backdrop-blur hover:bg-white/20"
+            >
+              <Heart size={15} className={isFavorite(city.id) ? 'fill-red-500 text-red-500' : ''} />
+              {isFavorite(city.id) ? 'Salvat' : 'Favorite'}
+            </button>
+          </div>
         </div>
       </div>
 

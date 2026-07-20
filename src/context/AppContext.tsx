@@ -18,6 +18,9 @@ import type {
   Notification,
   TravelPreferences,
   UserProfile,
+  AuthUser,
+  ActivityEntry,
+  ActivityType,
 } from '@/types';
 
 interface AppContextValue {
@@ -32,12 +35,12 @@ interface AppContextValue {
 
   // Favorite
   favorites: string[];
-  toggleFavorite: (id: string) => void;
+  toggleFavorite: (id: string, label?: string) => void;
   isFavorite: (id: string) => boolean;
 
   // Hoteluri salvate
   savedHotels: string[];
-  toggleHotel: (id: string) => void;
+  toggleHotel: (id: string, label?: string) => void;
   isHotelSaved: (id: string) => boolean;
 
   // Comparație
@@ -73,6 +76,16 @@ interface AppContextValue {
   // Profil
   profile: UserProfile;
   updateProfile: (p: Partial<UserProfile>) => void;
+
+  // Autentificare
+  user: AuthUser | null;
+  signIn: (u: AuthUser) => void;
+  signOut: () => void;
+
+  // Istoric activitate
+  activity: ActivityEntry[];
+  logActivity: (type: ActivityType, text: string) => void;
+  clearActivity: () => void;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -144,6 +157,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<UserProfile>(() =>
     loadStorage<UserProfile>(STORAGE_KEYS.profile, defaultProfile),
   );
+  const [user, setUser] = useState<AuthUser | null>(() =>
+    loadStorage<AuthUser | null>(STORAGE_KEYS.user, null),
+  );
+  const [activity, setActivity] = useState<ActivityEntry[]>(() =>
+    loadStorage<ActivityEntry[]>(STORAGE_KEYS.activity, []),
+  );
 
   // Aplică tema pe <html> și persistă
   useEffect(() => {
@@ -163,22 +182,65 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => saveStorage(STORAGE_KEYS.budgets, budgets), [budgets]);
   useEffect(() => saveStorage(STORAGE_KEYS.notifications, notifications), [notifications]);
   useEffect(() => saveStorage(STORAGE_KEYS.profile, profile), [profile]);
+  useEffect(() => saveStorage(STORAGE_KEYS.user, user), [user]);
+  useEffect(() => saveStorage(STORAGE_KEYS.activity, activity), [activity]);
 
   const toggleTheme = useCallback(() => setTheme((p) => (p === 'dark' ? 'light' : 'dark')), []);
   const setLanguage = useCallback((l: Language) => setLanguageState(l), []);
   const setCurrency = useCallback((c: Currency) => setCurrencyState(c), []);
   const t = useCallback((key: TranslationKey) => translate(language, key), [language]);
 
-  const toggleFavorite = useCallback((id: string) => {
-    setFavorites((prev) =>
-      prev.includes(id) ? prev.filter((f) => f !== id) : [...prev, id],
+  // Istoric activitate (zi + oră) — stabil, folosit din alte acțiuni.
+  const logActivity = useCallback((type: ActivityType, text: string) => {
+    setActivity((prev) =>
+      [{ id: `act-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, type, text, date: Date.now() }, ...prev].slice(0, 100),
     );
   }, []);
+  const clearActivity = useCallback(() => setActivity([]), []);
+
+  // Autentificare
+  const signIn = useCallback(
+    (u: AuthUser) => {
+      setUser(u);
+      setProfile((prev) => ({
+        ...prev,
+        name: u.name || prev.name,
+        email: u.email || prev.email,
+      }));
+      logActivity('auth', `Te-ai conectat ca ${u.name}${u.provider === 'google' ? ' (Google)' : ''}`);
+    },
+    [logActivity],
+  );
+  const signOut = useCallback(() => {
+    logActivity('auth', 'Te-ai deconectat');
+    setUser(null);
+  }, [logActivity]);
+
+  const toggleFavorite = useCallback(
+    (id: string, label?: string) => {
+      setFavorites((prev) => {
+        const has = prev.includes(id);
+        logActivity(
+          has ? 'unfavorite' : 'favorite',
+          has ? `Ai eliminat „${label ?? id}" de la favorite` : `Ai adăugat „${label ?? id}" la favorite`,
+        );
+        return has ? prev.filter((f) => f !== id) : [...prev, id];
+      });
+    },
+    [logActivity],
+  );
   const isFavorite = useCallback((id: string) => favorites.includes(id), [favorites]);
 
-  const toggleHotel = useCallback((id: string) => {
-    setSavedHotels((prev) => (prev.includes(id) ? prev.filter((h) => h !== id) : [...prev, id]));
-  }, []);
+  const toggleHotel = useCallback(
+    (id: string, label?: string) => {
+      setSavedHotels((prev) => {
+        const has = prev.includes(id);
+        logActivity('hotel', has ? `Ai eliminat hotelul „${label ?? id}"` : `Ai salvat hotelul „${label ?? id}"`);
+        return has ? prev.filter((h) => h !== id) : [...prev, id];
+      });
+    },
+    [logActivity],
+  );
   const isHotelSaved = useCallback((id: string) => savedHotels.includes(id), [savedHotels]);
 
   const toggleCompare = useCallback((id: string) => {
@@ -190,12 +252,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
   const clearCompare = useCallback(() => setCompareList([]), []);
 
-  const saveItinerary = useCallback((it: Itinerary) => {
-    setItineraries((prev) => {
-      if (prev.some((p) => p.id === it.id)) return prev.map((p) => (p.id === it.id ? it : p));
-      return [it, ...prev];
-    });
-  }, []);
+  const saveItinerary = useCallback(
+    (it: Itinerary) => {
+      setItineraries((prev) => {
+        if (prev.some((p) => p.id === it.id)) return prev.map((p) => (p.id === it.id ? it : p));
+        logActivity('itinerar', `Ai creat un itinerar pentru ${it.destinationName} (${it.totalDays} zile)`);
+        return [it, ...prev];
+      });
+    },
+    [logActivity],
+  );
   const updateItinerary = useCallback((it: Itinerary) => {
     setItineraries((prev) => prev.map((p) => (p.id === it.id ? it : p)));
   }, []);
@@ -205,19 +271,27 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const savePreferences = useCallback((p: TravelPreferences) => setPreferences(p), []);
 
-  const saveConversation = useCallback((c: ChatConversation) => {
-    setConversations((prev) => {
-      if (prev.some((x) => x.id === c.id)) return prev.map((x) => (x.id === c.id ? c : x));
-      return [c, ...prev].slice(0, 30);
-    });
-  }, []);
+  const saveConversation = useCallback(
+    (c: ChatConversation) => {
+      setConversations((prev) => {
+        if (prev.some((x) => x.id === c.id)) return prev.map((x) => (x.id === c.id ? c : x));
+        logActivity('chat', `Ai început o conversație cu agentul AI: „${c.title}"`);
+        return [c, ...prev].slice(0, 30);
+      });
+    },
+    [logActivity],
+  );
   const deleteConversation = useCallback((id: string) => {
     setConversations((prev) => prev.filter((c) => c.id !== id));
   }, []);
 
-  const saveBudget = useCallback((b: SavedBudget) => {
-    setBudgets((prev) => [b, ...prev].slice(0, 30));
-  }, []);
+  const saveBudget = useCallback(
+    (b: SavedBudget) => {
+      setBudgets((prev) => [b, ...prev].slice(0, 30));
+      logActivity('buget', `Ai salvat un buget „${b.label}" (${b.total}€)`);
+    },
+    [logActivity],
+  );
   const deleteBudget = useCallback((id: string) => {
     setBudgets((prev) => prev.filter((b) => b.id !== id));
   }, []);
@@ -267,6 +341,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     markAllRead,
     profile,
     updateProfile,
+    user,
+    signIn,
+    signOut,
+    activity,
+    logActivity,
+    clearActivity,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

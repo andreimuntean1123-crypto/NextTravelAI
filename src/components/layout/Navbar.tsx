@@ -12,6 +12,7 @@ import {
   Bell,
 } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
+import { AuthModal } from '@/components/auth/AuthModal';
 import type { Currency, Language } from '@/types';
 
 const navKeys = [
@@ -35,9 +36,13 @@ export function Navbar() {
     setCurrency,
     t,
     favorites,
+    savedHotels,
     notifications,
+    user,
   } = useApp();
+  const favCount = favorites.length + savedHotels.length;
   const [open, setOpen] = useState(false);
+  const [authOpen, setAuthOpen] = useState(false);
   const navigate = useNavigate();
   const unread = notifications.filter((n) => !n.read).length;
 
@@ -120,23 +125,40 @@ export function Navbar() {
             className="relative hidden h-9 w-9 place-items-center rounded-full text-navy-600 hover:bg-navy-100 dark:text-sand-200 dark:hover:bg-navy-800 sm:grid"
           >
             <Heart size={18} />
-            {favorites.length > 0 && (
+            {favCount > 0 && (
               <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-turquoise-500 px-1 text-[10px] font-bold text-navy-950">
-                {favorites.length}
+                {favCount}
               </span>
             )}
           </Link>
 
-          <Link
-            to="/cont"
-            aria-label="Contul meu"
-            className="relative hidden h-9 w-9 place-items-center rounded-full text-navy-600 hover:bg-navy-100 dark:text-sand-200 dark:hover:bg-navy-800 sm:grid"
-          >
-            <User size={18} />
-            {unread > 0 && (
-              <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-red-500" />
-            )}
-          </Link>
+          {user ? (
+            <Link
+              to="/cont"
+              aria-label="Contul meu"
+              title={user.name}
+              className="relative hidden h-9 w-9 place-items-center overflow-hidden rounded-full border-2 border-turquoise-400 sm:grid"
+            >
+              {user.picture ? (
+                <img src={user.picture} alt={user.name} className="h-full w-full object-cover" />
+              ) : (
+                <span className="grid h-full w-full place-items-center bg-turquoise-500 text-xs font-bold text-navy-950">
+                  {user.name.charAt(0).toUpperCase()}
+                </span>
+              )}
+              {unread > 0 && (
+                <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-red-500" />
+              )}
+            </Link>
+          ) : (
+            <button
+              onClick={() => setAuthOpen(true)}
+              aria-label="Conectează-te"
+              className="relative hidden h-9 w-9 place-items-center rounded-full text-navy-600 hover:bg-navy-100 dark:text-sand-200 dark:hover:bg-navy-800 sm:grid"
+            >
+              <User size={18} />
+            </button>
+          )}
 
           <button
             onClick={() => navigate('/planifica')}
@@ -182,7 +204,7 @@ export function Navbar() {
                 <User size={16} /> {t('nav.account')}
               </Link>
               <Link to="/favorite" onClick={() => setOpen(false)} className="btn-outline px-3 py-2 text-sm">
-                <Heart size={16} /> {favorites.length}
+                <Heart size={16} /> {favCount}
               </Link>
               <Link to="/cont" onClick={() => setOpen(false)} className="btn-outline px-3 py-2 text-sm">
                 <Bell size={16} /> {unread}
@@ -200,6 +222,8 @@ export function Navbar() {
           </div>
         </div>
       )}
+
+      <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
     </header>
   );
 }

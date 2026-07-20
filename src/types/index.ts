@@ -305,6 +305,35 @@ export interface UserProfile {
   memberSince: number;
 }
 
+// ─── Autentificare ────────────────────────────────────────────
+
+export interface AuthUser {
+  name: string;
+  email: string;
+  picture?: string;
+  provider: 'google' | 'demo';
+  since: number;
+}
+
+// ─── Istoric activitate ───────────────────────────────────────
+
+export type ActivityType =
+  | 'auth'
+  | 'favorite'
+  | 'unfavorite'
+  | 'itinerar'
+  | 'chat'
+  | 'buget'
+  | 'hotel'
+  | 'search';
+
+export interface ActivityEntry {
+  id: string;
+  type: ActivityType;
+  text: string;
+  date: number; // timestamp (zi + oră)
+}
+
 export type Language = 'ro' | 'en' | 'ru';
 export type Currency = 'EUR' | 'RON' | 'USD' | 'GBP';
 export type Theme = 'light' | 'dark';

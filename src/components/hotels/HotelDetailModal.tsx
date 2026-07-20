@@ -51,7 +51,7 @@ export function HotelDetailModal({ hotel, nights, onClose }: Props) {
           </p>
         </div>
         <button
-          onClick={() => toggleHotel(hotel.id)}
+          onClick={() => toggleHotel(hotel.id, hotel.name)}
           className="btn-outline shrink-0 px-3 py-2 text-sm"
         >
           <Heart size={15} className={isHotelSaved(hotel.id) ? 'fill-red-500 text-red-500' : ''} />

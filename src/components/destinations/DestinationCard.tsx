@@ -27,7 +27,7 @@ export function DestinationCard({ destination: d, matchScore }: Props) {
         <div className="absolute inset-0 bg-gradient-to-t from-navy-950/70 via-transparent to-transparent" />
 
         <button
-          onClick={() => toggleFavorite(d.id)}
+          onClick={() => toggleFavorite(d.id, `${d.name}, ${d.country}`)}
           aria-label={isFavorite(d.id) ? 'Elimină de la favorite' : 'Salvează la favorite'}
           className="absolute right-3 top-3 grid h-10 w-10 place-items-center rounded-full bg-white/90 backdrop-blur transition hover:scale-110"
         >
