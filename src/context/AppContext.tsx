@@ -218,28 +218,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const toggleFavorite = useCallback(
     (id: string, label?: string) => {
-      setFavorites((prev) => {
-        const has = prev.includes(id);
-        logActivity(
-          has ? 'unfavorite' : 'favorite',
-          has ? `Ai eliminat „${label ?? id}" de la favorite` : `Ai adăugat „${label ?? id}" la favorite`,
-        );
-        return has ? prev.filter((f) => f !== id) : [...prev, id];
-      });
+      const has = favorites.includes(id);
+      logActivity(
+        has ? 'unfavorite' : 'favorite',
+        has ? `Ai eliminat „${label ?? id}" de la favorite` : `Ai adăugat „${label ?? id}" la favorite`,
+      );
+      setFavorites((prev) => (prev.includes(id) ? prev.filter((f) => f !== id) : [...prev, id]));
     },
-    [logActivity],
+    [favorites, logActivity],
   );
   const isFavorite = useCallback((id: string) => favorites.includes(id), [favorites]);
 
   const toggleHotel = useCallback(
     (id: string, label?: string) => {
-      setSavedHotels((prev) => {
-        const has = prev.includes(id);
-        logActivity('hotel', has ? `Ai eliminat hotelul „${label ?? id}"` : `Ai salvat hotelul „${label ?? id}"`);
-        return has ? prev.filter((h) => h !== id) : [...prev, id];
-      });
+      const has = savedHotels.includes(id);
+      logActivity('hotel', has ? `Ai eliminat hotelul „${label ?? id}"` : `Ai salvat hotelul „${label ?? id}"`);
+      setSavedHotels((prev) => (prev.includes(id) ? prev.filter((h) => h !== id) : [...prev, id]));
     },
-    [logActivity],
+    [savedHotels, logActivity],
   );
   const isHotelSaved = useCallback((id: string) => savedHotels.includes(id), [savedHotels]);
 
@@ -256,9 +252,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     (it: Itinerary) => {
       setItineraries((prev) => {
         if (prev.some((p) => p.id === it.id)) return prev.map((p) => (p.id === it.id ? it : p));
-        logActivity('itinerar', `Ai creat un itinerar pentru ${it.destinationName} (${it.totalDays} zile)`);
         return [it, ...prev];
       });
+      logActivity('itinerar', `Ai creat un itinerar pentru ${it.destinationName} (${it.totalDays} zile)`);
     },
     [logActivity],
   );
@@ -273,13 +269,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const saveConversation = useCallback(
     (c: ChatConversation) => {
+      const isNew = !conversations.some((x) => x.id === c.id);
       setConversations((prev) => {
         if (prev.some((x) => x.id === c.id)) return prev.map((x) => (x.id === c.id ? c : x));
-        logActivity('chat', `Ai început o conversație cu agentul AI: „${c.title}"`);
         return [c, ...prev].slice(0, 30);
       });
+      if (isNew) logActivity('chat', `Ai început o conversație cu agentul AI: „${c.title}"`);
     },
-    [logActivity],
+    [conversations, logActivity],
   );
   const deleteConversation = useCallback((id: string) => {
     setConversations((prev) => prev.filter((c) => c.id !== id));
