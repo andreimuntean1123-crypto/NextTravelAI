@@ -15,9 +15,11 @@ import {
   LogOut,
   BedDouble,
   Activity as ActivityIcon,
+  KeyRound,
 } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { AuthModal } from '@/components/auth/AuthModal';
+import { ApiKeyForm } from '@/components/settings/ApiKeyForm';
 import { formatDateTime } from '@/lib/auth';
 import { destinations } from '@/data/destinations';
 import { hotels } from '@/data/hotels';
@@ -26,10 +28,11 @@ import { itineraryTotalCost } from '@/lib/itinerary';
 import { formatMoney } from '@/lib/format';
 import { tripTypeLabels } from '@/data/content';
 
-type Tab = 'profil' | 'activitate' | 'preferinte' | 'itinerare' | 'favorite' | 'hoteluri' | 'conversatii' | 'bugete' | 'notificari';
+type Tab = 'profil' | 'agent-ai' | 'activitate' | 'preferinte' | 'itinerare' | 'favorite' | 'hoteluri' | 'conversatii' | 'bugete' | 'notificari';
 
 const tabs: { id: Tab; label: string; icon: typeof User }[] = [
   { id: 'profil', label: 'Profil', icon: User },
+  { id: 'agent-ai', label: 'Agent AI (cheie API)', icon: KeyRound },
   { id: 'activitate', label: 'Activitate recentă', icon: ActivityIcon },
   { id: 'preferinte', label: 'Preferințe', icon: Settings },
   { id: 'itinerare', label: 'Itinerarele mele', icon: Map },
@@ -93,6 +96,17 @@ export function Account() {
         {/* Content */}
         <div>
           {tab === 'profil' && <ProfileTab />}
+          {tab === 'agent-ai' && (
+            <div className="space-y-4">
+              <div>
+                <h2 className="text-lg font-semibold">Agentul AI</h2>
+                <p className="text-sm text-navy-500 dark:text-sand-200/70">
+                  Conectează cheia ta Claude ca agentul să te înțeleagă și să vorbească liber cu tine.
+                </p>
+              </div>
+              <ApiKeyForm />
+            </div>
+          )}
           {tab === 'activitate' && <ActivityTab />}
           {tab === 'preferinte' && <PreferencesTab />}
           {tab === 'itinerare' && <ItinerariesTab />}
