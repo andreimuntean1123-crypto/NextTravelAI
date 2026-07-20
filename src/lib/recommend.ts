@@ -179,7 +179,15 @@ export function getRecommendations(
   const days = Number(prefs.days) || 6;
   const people = Number(prefs.people) || 2;
 
-  return destinations
+  // Exclude complet destinațiile pe care utilizatorul le-a respins.
+  const disliked = String(prefs.dislikedDestinations ?? '').toLowerCase();
+  const pool = disliked
+    ? destinations.filter(
+        (d) => !disliked.includes(d.name.toLowerCase()) && !disliked.includes(d.country.toLowerCase()),
+      )
+    : destinations;
+
+  return pool
     .map<Recommendation>((dest) => {
       const { score, reasons, pros, cons } = scoreDestination(dest, prefs);
       return {

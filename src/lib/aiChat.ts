@@ -69,13 +69,47 @@ function extractPrefs(text: string, base: TravelPreferences): TravelPreferences 
   if (t.includes('tropical')) prefs.climate = 'tropicala';
   if (t.includes('zăpad') || t.includes('zapad')) prefs.climate = 'zapada';
 
-  // regiune / destinație menționată
+  // regiune / destinație menționată — ținând cont de NEGAȚIE
+  // ex. „nu vreau santorini", „fără Bali", „altceva decât Roma"
+  const negationCues = [
+    'nu vreau',
+    'nu-mi place',
+    'nu imi place',
+    'nu îmi place',
+    'nu mai',
+    'fara',
+    'fără',
+    'altceva decat',
+    'altceva decât',
+    'in afara de',
+    'în afară de',
+    'exclus',
+    'nu ',
+  ];
+  const disliked: string[] = [];
   for (const d of destinations) {
-    if (t.includes(d.name.toLowerCase()) || t.includes(d.country.toLowerCase())) {
+    const name = d.name.toLowerCase();
+    const country = d.country.toLowerCase();
+    const idx = t.indexOf(name) >= 0 ? t.indexOf(name) : t.indexOf(country);
+    if (idx < 0) continue;
+    // Verifică dacă în fața mențiunii (până la ~20 caractere) există o negație.
+    const before = t.slice(Math.max(0, idx - 20), idx);
+    const negated = negationCues.some((cue) => before.includes(cue));
+    if (negated) {
+      disliked.push(d.name);
+    } else {
       prefs.destinationWish = d.name;
     }
   }
-  if (t.includes('europ')) prefs.destinationWish = prefs.destinationWish ?? 'europ';
+  if (disliked.length) {
+    const prev = String(prefs.dislikedDestinations ?? '');
+    prefs.dislikedDestinations = [prev, ...disliked].filter(Boolean).join(', ');
+    // Dacă destinația dorită a fost de fapt negată, o eliminăm.
+    if (prefs.destinationWish && disliked.includes(prefs.destinationWish as string)) {
+      prefs.destinationWish = undefined;
+    }
+  }
+  if (t.includes('europ') && !t.includes('nu ') ) prefs.destinationWish = prefs.destinationWish ?? 'europ';
 
   return prefs;
 }
