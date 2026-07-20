@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { LogIn, Mail, User as UserIcon, Sparkles } from 'lucide-react';
+import { LogIn, Mail, User as UserIcon } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { useApp } from '@/context/AppContext';
 import { isGoogleConfigured, renderGoogleButton } from '@/lib/auth';
@@ -39,42 +39,31 @@ export function AuthModal({ open, onClose }: Props) {
   return (
     <Modal open={open} onClose={onClose} size="md">
       <div className="text-center">
-        <span className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-br from-turquoise-400 to-navy-700 text-white">
-          <LogIn size={26} />
+        <span className="mx-auto mb-3 grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-turquoise-400 to-navy-700 text-white">
+          <LogIn size={22} />
         </span>
-        <h2 className="text-2xl font-bold">Bine ai venit!</h2>
+        <h2 className="text-xl font-bold">Bine ai venit!</h2>
         <p className="mt-1 text-sm text-navy-500 dark:text-sand-200/70">
-          Conectează-te ca să îți salvezi favoritele, itinerarele și istoricul.
+          Conectează-te ca să îți salvezi favoritele și itinerarele.
         </p>
       </div>
 
       {/* Google */}
-      {isGoogleConfigured() ? (
-        <div className="mt-6 flex justify-center">
+      {isGoogleConfigured() && (
+        <div className="mt-5 flex min-h-[44px] justify-center">
           <div ref={googleRef} />
         </div>
-      ) : (
-        <div className="mt-6 rounded-xl border border-dashed border-navy-200 p-4 text-center text-xs text-navy-500 dark:border-navy-700 dark:text-sand-200/70">
-          <p className="flex items-center justify-center gap-1.5 font-medium">
-            <Sparkles size={13} className="text-gold-500" /> Autentificare Google (mod demo)
-          </p>
-          <p className="mt-1">
-            Butonul oficial Google apare automat după ce adaugi{' '}
-            <code className="rounded bg-navy-100 px-1 dark:bg-navy-800">VITE_GOOGLE_CLIENT_ID</code> în
-            variabilele de mediu. Momentan poți intra rapid mai jos.
-          </p>
-        </div>
       )}
-      {error && <p className="mt-3 text-center text-sm text-red-500">{error}</p>}
+      {error && <p className="mt-2 text-center text-sm text-red-500">{error}</p>}
 
       {/* Separator */}
-      <div className="my-5 flex items-center gap-3 text-xs text-navy-400">
+      <div className="my-4 flex items-center gap-3 text-xs text-navy-400">
         <span className="h-px flex-1 bg-navy-100 dark:bg-navy-800" />
-        sau continuă cu email
+        {isGoogleConfigured() ? 'sau cu email' : 'continuă cu email'}
         <span className="h-px flex-1 bg-navy-100 dark:bg-navy-800" />
       </div>
 
-      {/* Demo / email form */}
+      {/* Email form */}
       <form onSubmit={demoSubmit} className="space-y-3">
         <div className="relative">
           <UserIcon size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-navy-400" />
@@ -102,8 +91,8 @@ export function AuthModal({ open, onClose }: Props) {
         </button>
       </form>
 
-      <p className="mt-4 text-center text-xs text-navy-400">
-        Datele tale rămân pe acest dispozitiv (localStorage). Nu trimitem nimic în afară în modul demo.
+      <p className="mt-3 text-center text-xs text-navy-400">
+        Datele tale rămân pe acest dispozitiv. {!isGoogleConfigured() && 'Google Sign-In se activează cu VITE_GOOGLE_CLIENT_ID.'}
       </p>
     </Modal>
   );
