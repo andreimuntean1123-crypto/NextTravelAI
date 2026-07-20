@@ -31,29 +31,7 @@ interface CountryBlock {
   cities: string[];
 }
 
-// Imagini orașe (pool Unsplash, ciclat).
-const CITY_IMAGES = [
-  'photo-1477959858617-67f85cf4f1df',
-  'photo-1502602898657-3e91760cbb34',
-  'photo-1513635269975-59663e0ac1ad',
-  'photo-1524231757912-21f4fe3a7200',
-  'photo-1499856871958-5b9627545d1a',
-  'photo-1533929736458-ca588d08c8be',
-  'photo-1520175480921-4edfa2983e0f',
-  'photo-1512453979798-5ea266f8880c',
-  'photo-1518684079-3c830dcef090',
-  'photo-1449824913935-59a10b8d2000',
-  'photo-1480714378408-67cf0d13bc1b',
-  'photo-1496588152823-86ff7695e68f',
-  'photo-1523906834658-6e24ef2386f9',
-  'photo-1467269204594-9661b134dd2b',
-  'photo-1528702748617-c64d49f918af',
-  'photo-1516550893923-42d28e5677af',
-  'photo-1531572753322-ad063cecc140',
-  'photo-1444723121867-7a241cacace9',
-  'photo-1519677100203-a0e668c92439',
-  'photo-1490642914619-7955a3fd483c',
-];
+import { getCityImage } from '@/data/cityImages';
 
 function slug(s: string): string {
   return s
@@ -69,9 +47,6 @@ function hash(str: string): number {
   for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) >>> 0;
   return h;
 }
-
-const img = (i: string) =>
-  `https://images.unsplash.com/${i}?auto=format&fit=crop&w=800&q=80`;
 
 // ─── Datele: țară → orașe populare ───────────────────────────
 const DATA: CountryBlock[] = [
@@ -260,7 +235,7 @@ export const cities: City[] = DATA.flatMap((block) =>
         name,
         country: block.country,
         continent: block.continent,
-        image: img(CITY_IMAGES[h % CITY_IMAGES.length]),
+        image: getCityImage(id, name, block.continent),
         priceTier: block.tier,
         popularity: 55 + (h % 46), // 55-100
       },
