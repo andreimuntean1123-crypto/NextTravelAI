@@ -139,7 +139,7 @@ function ProfileTab() {
           </SettingRow>
           <SettingRow label="Limbă">
             <div className="flex gap-2">
-              {(['ro', 'en'] as const).map((l) => (
+              {(['ro', 'en', 'ru'] as const).map((l) => (
                 <button
                   key={l}
                   onClick={() => setLanguage(l)}

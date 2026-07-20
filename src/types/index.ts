@@ -305,6 +305,6 @@ export interface UserProfile {
   memberSince: number;
 }
 
-export type Language = 'ro' | 'en';
+export type Language = 'ro' | 'en' | 'ru';
 export type Currency = 'EUR' | 'RON' | 'USD' | 'GBP';
 export type Theme = 'light' | 'dark';

@@ -80,9 +80,14 @@ export function Navbar() {
           {/* Language */}
           <div className="hidden items-center rounded-full border border-navy-200 dark:border-navy-700 sm:flex">
             <button
-              onClick={() => setLanguage((language === 'ro' ? 'en' : 'ro') as Language)}
+              onClick={() => {
+                const order: Language[] = ['ro', 'en', 'ru'];
+                const next = order[(order.indexOf(language) + 1) % order.length];
+                setLanguage(next);
+              }}
               className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-navy-600 dark:text-sand-200"
               aria-label="Schimbă limba"
+              title="RO / EN / RU"
             >
               <Globe size={14} /> {language.toUpperCase()}
             </button>
