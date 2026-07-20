@@ -1,13 +1,21 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { MessageCircle, X, Send, Sparkles, Bot, Trash2 } from 'lucide-react';
+import { MessageCircle, X, Send, Sparkles, Bot, Trash2, Mic, Volume2, VolumeX } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { sendToAgent, isLiveAiConfigured } from '@/lib/aiService';
 import { WELCOME_MESSAGE, DEFAULT_SUGGESTIONS, makeMessage } from '@/lib/aiChat';
+import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
+import {
+  speak,
+  cancelSpeech,
+  isSpeechSynthesisSupported,
+  langToLocale,
+} from '@/lib/speech';
+import { loadStorage, saveStorage } from '@/lib/storage';
 import type { ChatMessage } from '@/types';
 
 export function AiChatWidget() {
-  const { preferences, saveConversation, t } = useApp();
+  const { preferences, saveConversation, t, language } = useApp();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
     makeMessage('assistant', WELCOME_MESSAGE, { suggestions: DEFAULT_SUGGESTIONS }),
@@ -15,12 +23,32 @@ export function AiChatWidget() {
   const [input, setInput] = useState('');
   const [typing, setTyping] = useState(false);
   const [pulse, setPulse] = useState(true);
+  const [voiceOut, setVoiceOut] = useState<boolean>(() => loadStorage('voiceOut', false));
   const scrollRef = useRef<HTMLDivElement>(null);
   const convIdRef = useRef(`conv-${Date.now()}`);
+  const { supported: micSupported, listening, interim, start, stop } = useSpeechRecognition();
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
   }, [messages, typing]);
+
+  // Persistă preferința de voce și oprește vocea când e dezactivată/închis.
+  useEffect(() => saveStorage('voiceOut', voiceOut), [voiceOut]);
+  useEffect(() => {
+    if (!voiceOut || !open) cancelSpeech();
+  }, [voiceOut, open]);
+
+  const toggleMic = () => {
+    if (listening) {
+      stop();
+    } else {
+      cancelSpeech();
+      start(langToLocale(language), (finalText) => {
+        setInput('');
+        send(finalText);
+      });
+    }
+  };
 
   const persist = (msgs: ChatMessage[]) => {
     const firstUser = msgs.find((m) => m.role === 'user');
@@ -46,6 +74,7 @@ export function AiChatWidget() {
     setMessages(finalMsgs);
     setTyping(false);
     persist(finalMsgs);
+    if (voiceOut) speak(reply.content, language);
   };
 
   const reset = () => {
@@ -93,6 +122,19 @@ export function AiChatWidget() {
               </div>
             </div>
             <div className="flex items-center gap-1">
+              {isSpeechSynthesisSupported() && (
+                <button
+                  onClick={() => {
+                    setVoiceOut((v) => !v);
+                    cancelSpeech();
+                  }}
+                  aria-label={voiceOut ? 'Oprește vocea agentului' : 'Pornește vocea agentului'}
+                  title={voiceOut ? 'Vocea agentului: pornită' : 'Vocea agentului: oprită'}
+                  className={`grid h-8 w-8 place-items-center rounded-full hover:bg-white/10 ${voiceOut ? 'text-turquoise-300' : ''}`}
+                >
+                  {voiceOut ? <Volume2 size={17} /> : <VolumeX size={17} />}
+                </button>
+              )}
               <button
                 onClick={reset}
                 aria-label="Conversație nouă"
@@ -119,6 +161,21 @@ export function AiChatWidget() {
             {typing && <TypingIndicator />}
           </div>
 
+          {/* Listening indicator */}
+          {listening && (
+            <div className="flex items-center gap-2 border-t border-navy-100 bg-turquoise-50 px-4 py-2 text-sm text-turquoise-700 dark:border-navy-800 dark:bg-navy-800 dark:text-turquoise-300">
+              <span className="flex items-center gap-1">
+                {[0, 150, 300].map((d) => (
+                  <span key={d} className="h-3 w-1 animate-pulse rounded-full bg-turquoise-500" style={{ animationDelay: `${d}ms` }} />
+                ))}
+              </span>
+              <span className="flex-1 truncate">{interim || 'Ascult... vorbește acum'}</span>
+              <button onClick={stop} className="text-xs font-semibold underline">
+                Stop
+              </button>
+            </div>
+          )}
+
           {/* Input */}
           <form
             onSubmit={(e) => {
@@ -127,10 +184,25 @@ export function AiChatWidget() {
             }}
             className="flex items-center gap-2 border-t border-navy-100 bg-white p-3 dark:border-navy-800 dark:bg-navy-900"
           >
+            {micSupported && (
+              <button
+                type="button"
+                onClick={toggleMic}
+                aria-label={listening ? 'Oprește microfonul' : 'Vorbește'}
+                title={listening ? 'Oprește microfonul' : 'Vorbește cu agentul'}
+                className={`grid h-11 w-11 shrink-0 place-items-center rounded-full transition ${
+                  listening
+                    ? 'animate-pulse bg-red-500 text-white'
+                    : 'bg-navy-100 text-navy-600 hover:bg-navy-200 dark:bg-navy-800 dark:text-sand-200'
+                }`}
+              >
+                <Mic size={18} />
+              </button>
+            )}
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder={t('chat.placeholder')}
+              placeholder={listening ? 'Ascult...' : t('chat.placeholder')}
               className="input-field flex-1 py-2.5 text-sm"
             />
             <button
