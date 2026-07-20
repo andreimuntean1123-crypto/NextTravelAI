@@ -1,4 +1,5 @@
 import { generateDemoReply, makeMessage } from '@/lib/aiChat';
+import { getAiConfig } from '@/lib/aiConfig';
 import { destinations } from '@/data/destinations';
 import { tripTypeLabels } from '@/data/content';
 import type { ChatMessage, TravelPreferences } from '@/types';
@@ -13,23 +14,8 @@ import type { ChatMessage, TravelPreferences } from '@/types';
 //  NICIODATĂ din cod. Vezi „.env.example".
 // ─────────────────────────────────────────────────────────────
 
-interface AiEnv {
-  provider: string;
-  apiKey: string;
-  model: string;
-}
-
-function readEnv(): AiEnv {
-  const env = import.meta.env;
-  return {
-    provider: (env.VITE_AI_PROVIDER as string) || 'demo',
-    apiKey: (env.VITE_AI_API_KEY as string) || '',
-    model: (env.VITE_AI_MODEL as string) || 'claude-opus-4-8',
-  };
-}
-
 export function isLiveAiConfigured(): boolean {
-  const { provider, apiKey } = readEnv();
+  const { provider, apiKey } = getAiConfig();
   return provider !== 'demo' && apiKey.trim().length > 0;
 }
 
@@ -100,7 +86,7 @@ async function callLiveProvider(
   history: ChatMessage[],
   prefs: TravelPreferences,
 ): Promise<ChatMessage> {
-  const { apiKey, model } = readEnv();
+  const { apiKey, model } = getAiConfig();
 
   // Construiește mesajele: elimină mesajele „assistant" de la început,
   // ca primul mesaj să fie „user" (cerință Anthropic).

@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { MessageCircle, X, Send, Sparkles, Bot, Trash2, Mic, Volume2, VolumeX } from 'lucide-react';
+import { MessageCircle, X, Send, Sparkles, Bot, Trash2, Mic, Volume2, VolumeX, KeyRound, Check, ExternalLink } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { sendToAgent, isLiveAiConfigured } from '@/lib/aiService';
+import { getAiConfig, setAiConfig, clearAiConfig } from '@/lib/aiConfig';
 import { WELCOME_MESSAGE, DEFAULT_SUGGESTIONS, makeMessage } from '@/lib/aiChat';
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
 import {
@@ -24,9 +25,12 @@ export function AiChatWidget() {
   const [typing, setTyping] = useState(false);
   const [pulse, setPulse] = useState(true);
   const [voiceOut, setVoiceOut] = useState<boolean>(() => loadStorage('voiceOut', false));
+  const [showSettings, setShowSettings] = useState(false);
+  const [cfgVersion, setCfgVersion] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
   const convIdRef = useRef(`conv-${Date.now()}`);
   const { supported: micSupported, listening, interim, start, stop } = useSpeechRecognition();
+  const liveAi = useMemo(() => isLiveAiConfigured(), [cfgVersion]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
@@ -116,12 +120,20 @@ export function AiChatWidget() {
               <div>
                 <p className="text-sm font-semibold">{t('chat.title')}</p>
                 <p className="flex items-center gap-1 text-xs text-sand-100/80">
-                  <span className="h-1.5 w-1.5 rounded-full bg-turquoise-400" />
-                  {isLiveAiConfigured() ? 'Conectat la API' : 'Mod demonstrativ • online'}
+                  <span className={`h-1.5 w-1.5 rounded-full ${liveAi ? 'bg-turquoise-400' : 'bg-gold-400'}`} />
+                  {liveAi ? 'Conectat la Claude' : 'Mod demonstrativ • online'}
                 </p>
               </div>
             </div>
             <div className="flex items-center gap-1">
+              <button
+                onClick={() => setShowSettings((s) => !s)}
+                aria-label="Cheie API / setări agent"
+                title="Conectează-ți cheia API"
+                className={`grid h-8 w-8 place-items-center rounded-full hover:bg-white/10 ${liveAi ? 'text-turquoise-300' : 'text-gold-400'}`}
+              >
+                <KeyRound size={16} />
+              </button>
               {isSpeechSynthesisSupported() && (
                 <button
                   onClick={() => {
@@ -152,6 +164,15 @@ export function AiChatWidget() {
               </button>
             </div>
           </div>
+
+          {/* Settings / API key */}
+          {showSettings && (
+            <ApiKeySettings
+              liveAi={liveAi}
+              onClose={() => setShowSettings(false)}
+              onSaved={() => setCfgVersion((v) => v + 1)}
+            />
+          )}
 
           {/* Messages */}
           <div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto bg-sand-50 p-4 dark:bg-navy-950">
@@ -217,6 +238,96 @@ export function AiChatWidget() {
         </div>
       )}
     </>
+  );
+}
+
+function ApiKeySettings({
+  liveAi,
+  onClose,
+  onSaved,
+}: {
+  liveAi: boolean;
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const cfg = getAiConfig();
+  const [apiKey, setApiKey] = useState(cfg.apiKey);
+  const [model, setModel] = useState(cfg.model);
+  const [saved, setSaved] = useState(false);
+
+  const save = () => {
+    setAiConfig({
+      provider: apiKey.trim() ? 'anthropic' : 'demo',
+      apiKey: apiKey.trim(),
+      model: model.trim() || 'claude-opus-4-8',
+    });
+    setSaved(true);
+    onSaved();
+    setTimeout(() => setSaved(false), 2000);
+  };
+
+  const disconnect = () => {
+    clearAiConfig();
+    setApiKey('');
+    onSaved();
+  };
+
+  return (
+    <div className="border-b border-navy-100 bg-white p-4 dark:border-navy-800 dark:bg-navy-900">
+      <div className="mb-2 flex items-center justify-between">
+        <h4 className="flex items-center gap-2 text-sm font-semibold">
+          <KeyRound size={15} className="text-turquoise-500" /> Conectează agentul real (Claude)
+        </h4>
+        <button onClick={onClose} className="text-navy-400 hover:text-navy-600" aria-label="Închide">
+          <X size={16} />
+        </button>
+      </div>
+      <p className="mb-3 text-xs text-navy-500 dark:text-sand-200/70">
+        Lipește cheia ta Anthropic (începe cu <code>sk-ant-</code>) ca agentul să te înțeleagă și să
+        vorbească liber cu tine. Fără cheie, rămâne în mod demonstrativ.
+      </p>
+
+      <label className="mb-1 block text-xs font-medium">Cheie API</label>
+      <input
+        type="password"
+        value={apiKey}
+        onChange={(e) => setApiKey(e.target.value)}
+        placeholder="sk-ant-..."
+        className="input-field mb-2 py-2 text-sm"
+        autoComplete="off"
+      />
+
+      <label className="mb-1 block text-xs font-medium">Model</label>
+      <select value={model} onChange={(e) => setModel(e.target.value)} className="input-field mb-3 py-2 text-sm">
+        <option value="claude-opus-4-8">Claude Opus 4.8 (cel mai capabil)</option>
+        <option value="claude-sonnet-5">Claude Sonnet 5 (rapid, echilibrat)</option>
+        <option value="claude-haiku-4-5">Claude Haiku 4.5 (cel mai ieftin)</option>
+      </select>
+
+      <div className="flex items-center gap-2">
+        <button onClick={save} className="btn-primary flex-1 py-2 text-sm">
+          {saved ? (<><Check size={15} /> Salvat!</>) : 'Salvează și conectează'}
+        </button>
+        {liveAi && (
+          <button onClick={disconnect} className="btn-outline px-3 py-2 text-sm text-red-500">
+            Deconectează
+          </button>
+        )}
+      </div>
+
+      <a
+        href="https://console.anthropic.com/settings/keys"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-3 flex items-center gap-1 text-xs text-turquoise-600 dark:text-turquoise-300"
+      >
+        <ExternalLink size={12} /> De unde iau o cheie API?
+      </a>
+      <p className="mt-2 text-[11px] leading-relaxed text-navy-400">
+        ⚠️ Cheia se salvează în browserul tău (localStorage) și se folosește direct din browser — e
+        ok pentru uz personal, dar nu o partaja pe un dispozitiv public.
+      </p>
+    </div>
   );
 }
 
