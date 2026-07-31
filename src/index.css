@@ -120,6 +120,60 @@
     @apply bg-white/70 dark:bg-navy-900/70 backdrop-blur-xl;
   }
 
+  /* Antetul se termina printr-o linie taiata brusc peste fundalul paginii:
+     bara avea culoare plina si bordura de jos, iar imediat sub ea incepea
+     degradeul hero-ului.
+
+     Aici fundalul si neclaritatea stau pe un strat separat, in spatele
+     continutului, iar acel strat se stinge treptat spre baza. Butoanele
+     raman clare si isi pastreaza forma — se topeste doar fundalul din
+     spatele lor, deci nu mai exista nicio muchie. */
+  .nav-blend {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .nav-blend::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(
+      to bottom,
+      rgb(255 255 255 / 0.92) 0%,
+      rgb(255 255 255 / 0.88) 72%,
+      rgb(255 255 255 / 0) 100%
+    );
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    /* Masca stinge si neclaritatea, nu doar culoarea — altfel ramanea
+       o muchie vizibila exact acolo unde se oprea blur-ul.
+       Stingerea incepe tarziu (82%) dintr-un motiv practic: textul din
+       antet ajunge aproape de baza, iar daca fundalul dispare mai devreme
+       literele inchise cad peste hero-ul intunecat si nu se mai citesc. */
+    -webkit-mask-image: linear-gradient(to bottom, #000 82%, transparent 100%);
+    mask-image: linear-gradient(to bottom, #000 82%, transparent 100%);
+  }
+
+  .dark .nav-blend::before {
+    background: linear-gradient(
+      to bottom,
+      rgb(12 22 40 / 0.94) 0%,
+      rgb(12 22 40 / 0.9) 72%,
+      rgb(12 22 40 / 0) 100%
+    );
+  }
+
+  /* Sectiunea colorata de sus urca pe sub antetul lipit (h-16 = 4rem),
+     in loc sa inceapa exact sub el. Asa fundalul inchis trece pe sub bara
+     translucida, iar degradeul antetului se asaza peste el — nu mai exista
+     o linie orizontala unde se schimba culoarea. Marginea negativa este
+     compensata cu padding, deci continutul ramane exact unde era. */
+  .under-nav {
+    margin-top: -4rem;
+    padding-top: 4rem;
+  }
+
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }

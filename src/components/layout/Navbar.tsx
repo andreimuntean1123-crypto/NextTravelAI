@@ -47,7 +47,7 @@ export function Navbar() {
   const unread = notifications.filter((n) => !n.read).length;
 
   return (
-    <header className="sticky top-0 z-50 border-b border-navy-100/60 dark:border-navy-800 glass">
+    <header className="nav-blend sticky top-0 z-50">
       <nav className="container-page flex h-16 items-center justify-between gap-4">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2 shrink-0" onClick={() => setOpen(false)}>
@@ -67,7 +67,7 @@ export function Navbar() {
                 to={item.to}
                 end={item.to === '/'}
                 className={({ isActive }) =>
-                  `rounded-full px-3 py-2 text-sm font-medium transition-colors ${
+                  `whitespace-nowrap rounded-full px-2.5 py-2 text-sm font-medium transition-colors 2xl:px-3 ${
                     isActive
                       ? 'bg-turquoise-50 text-turquoise-700 dark:bg-navy-800 dark:text-turquoise-300'
                       : 'text-navy-600 hover:text-turquoise-600 dark:text-sand-200 dark:hover:text-turquoise-300'
@@ -160,11 +160,17 @@ export function Navbar() {
             </button>
           )}
 
+          {/* Butonul principal. Sub 1536px, unde meniul complet abia incape,
+              ramane doar iconita cu sclipici — eticheta lunga scotea bara
+              in afara ecranului la 1280 si 1440. */}
           <button
             onClick={() => navigate('/planifica')}
-            className="btn-primary hidden px-4 py-2 text-sm md:inline-flex"
+            className="btn-primary hidden shrink-0 whitespace-nowrap px-3 py-2 text-sm md:inline-flex 2xl:px-4"
+            aria-label={t('cta.planAi')}
+            title={t('cta.planAi')}
           >
-            <Sparkles size={16} /> {t('cta.planAi')}
+            <Sparkles size={16} />
+            <span className="hidden 2xl:inline">{t('cta.planAi')}</span>
           </button>
 
           {/* Mobile toggle */}

@@ -29,7 +29,7 @@ export function Hero({ onPlanClick }: HeroProps) {
   };
 
   return (
-    <section className="relative overflow-hidden">
+    <section className="under-nav relative overflow-hidden">
       {/* Background image */}
       <div className="absolute inset-0">
         <img

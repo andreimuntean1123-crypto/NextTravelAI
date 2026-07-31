@@ -22,7 +22,7 @@ export function Plan() {
   return (
     <div>
       {/* Header */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-navy-800 via-navy-700 to-turquoise-800 py-16 text-white">
+      <section className="under-nav relative overflow-hidden bg-gradient-to-br from-navy-800 via-navy-700 to-turquoise-800 py-16 text-white">
         <div className="pointer-events-none absolute -right-20 top-0 h-72 w-72 rounded-full bg-turquoise-400/20 blur-3xl" />
         <div className="container-page relative text-center">
           <span className="chip mx-auto mb-4 border border-white/20 bg-white/10 backdrop-blur">
