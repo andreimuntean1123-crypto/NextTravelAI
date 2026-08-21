@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Check, Sparkles, X } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { questions, totalSteps } from '@/data/questionnaire';
+import type { TranslationKey } from '@/i18n/translations';
 import type { AnswerValue, Question, TravelPreferences } from '@/types';
 
 interface Props {
@@ -10,7 +11,7 @@ interface Props {
 }
 
 export function Questionnaire({ onClose }: Props) {
-  const { preferences, savePreferences } = useApp();
+  const { preferences, savePreferences, t, tf } = useApp();
   const navigate = useNavigate();
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<TravelPreferences>({ ...preferences });
@@ -61,15 +62,15 @@ export function Questionnaire({ onClose }: Props) {
             <span className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-turquoise-400 to-navy-700 text-white">
               <Sparkles size={16} />
             </span>
-            <span className="font-display font-semibold">Planificare cu AI</span>
+            <span className="font-display font-semibold">{t('questionnaire.header')}</span>
           </div>
           <div className="text-sm font-medium text-navy-500 dark:text-sand-200/70">
-            Pasul {index + 1} / {totalSteps}
+            {tf('questionnaire.step', { current: index + 1, total: totalSteps })}
           </div>
           <button
             onClick={onClose}
             className="grid h-9 w-9 place-items-center rounded-full text-navy-500 hover:bg-navy-100 dark:hover:bg-navy-800"
-            aria-label="Închide"
+            aria-label={t('questionnaire.close')}
           >
             <X size={20} />
           </button>
@@ -86,12 +87,12 @@ export function Questionnaire({ onClose }: Props) {
       <div className="flex-1 overflow-y-auto">
         <div className="container-page max-w-3xl py-10">
           <div key={question.id} className="animate-fade-in">
-            <h2 className="text-2xl font-semibold sm:text-3xl">{question.title}</h2>
+            <h2 className="text-2xl font-semibold sm:text-3xl">{t(question.title as TranslationKey)}</h2>
             {question.subtitle && (
-              <p className="mt-2 text-navy-500 dark:text-sand-200/70">{question.subtitle}</p>
+              <p className="mt-2 text-navy-500 dark:text-sand-200/70">{t(question.subtitle as TranslationKey)}</p>
             )}
             {question.optional && (
-              <p className="mt-1 text-sm text-navy-400">(opțional — poți sări acest pas)</p>
+              <p className="mt-1 text-sm text-navy-400">{t('questionnaire.optional')}</p>
             )}
 
             <div className="mt-8">
@@ -110,12 +111,12 @@ export function Questionnaire({ onClose }: Props) {
       <div className="border-t border-navy-100 bg-white dark:border-navy-800 dark:bg-navy-900">
         <div className="container-page flex items-center justify-between gap-4 py-4">
           <button onClick={prev} className="btn-ghost px-4 py-2.5 text-sm">
-            <ArrowLeft size={16} /> Înapoi
+            <ArrowLeft size={16} /> {t('questionnaire.back')}
           </button>
           <div className="flex items-center gap-3">
             {question.optional && !canContinueValue(current) && (
               <button onClick={next} className="btn-outline px-4 py-2.5 text-sm">
-                Sari peste
+                {t('questionnaire.skip')}
               </button>
             )}
             <button
@@ -125,11 +126,11 @@ export function Questionnaire({ onClose }: Props) {
             >
               {isLast ? (
                 <>
-                  Vezi recomandările <Check size={16} />
+                  {t('questionnaire.seeRecommendations')} <Check size={16} />
                 </>
               ) : (
                 <>
-                  Continuă <ArrowRight size={16} />
+                  {t('questionnaire.continueBtn')} <ArrowRight size={16} />
                 </>
               )}
             </button>
@@ -157,13 +158,15 @@ function QuestionInput({
   onSet: (v: AnswerValue) => void;
   onToggleMulti: (v: string) => void;
 }) {
+  const { t } = useApp();
+
   if (question.type === 'text') {
     return (
       <input
         autoFocus
         value={(current as string) ?? ''}
         onChange={(e) => onSet(e.target.value)}
-        placeholder={question.placeholder}
+        placeholder={question.placeholder ? t(question.placeholder as TranslationKey) : undefined}
         className="input-field text-lg"
       />
     );
@@ -179,12 +182,12 @@ function QuestionInput({
           max={question.max}
           value={(current as number) ?? ''}
           onChange={(e) => onSet(e.target.value === '' ? '' : Number(e.target.value))}
-          placeholder={question.placeholder}
+          placeholder={question.placeholder ? t(question.placeholder as TranslationKey) : undefined}
           className="input-field max-w-xs text-lg"
         />
         {question.unit && (
           <span className="text-lg font-medium text-navy-500 dark:text-sand-200/70">
-            {question.unit}
+            {t(question.unit as TranslationKey)}
           </span>
         )}
       </div>
@@ -211,9 +214,9 @@ function QuestionInput({
           }`}
         >
           {opt.icon && <span className="text-2xl">{opt.icon}</span>}
-          <span className="text-sm font-medium">{opt.label}</span>
+          <span className="text-sm font-medium">{t(opt.label as TranslationKey)}</span>
           {opt.description && (
-            <span className="text-xs text-navy-400">{opt.description}</span>
+            <span className="text-xs text-navy-400">{t(opt.description as TranslationKey)}</span>
           )}
           {selected(opt.value) && (
             <span className="absolute right-2 top-2 grid h-5 w-5 place-items-center rounded-full bg-turquoise-500 text-navy-950">

@@ -19,19 +19,21 @@ import {
 } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { getDestinationById } from '@/data/destinations';
-import { regenerateDay, itineraryTotalCost, slotLabels } from '@/lib/itinerary';
+import { regenerateDay, itineraryTotalCost, slotLabelsFor } from '@/lib/itinerary';
 import { generateItinerary } from '@/lib/itinerary';
 import { formatMoney, formatDuration } from '@/lib/format';
+import { localizeDestination } from '@/i18n/destinationContent';
 import type { ItineraryActivity, Pace } from '@/types';
 
 let addCounter = 0;
 
 export function ItineraryDetail() {
   const { id } = useParams();
-  const { itineraries, updateItinerary, currency } = useApp();
+  const { itineraries, updateItinerary, currency, t, language } = useApp();
   const [shareMsg, setShareMsg] = useState(false);
 
   const itinerary = itineraries.find((it) => it.id === id);
+  const slotLabels = slotLabelsFor(language);
 
   const totalCost = useMemo(
     () => (itinerary ? itineraryTotalCost(itinerary) : 0),
@@ -41,12 +43,12 @@ export function ItineraryDetail() {
   if (!itinerary) {
     return (
       <div className="container-page py-20 text-center">
-        <h1 className="text-2xl font-bold">Itinerarul nu a fost găsit</h1>
+        <h1 className="text-2xl font-bold">{t('itineraryDetail.notFound.title')}</h1>
         <p className="mt-2 text-navy-500 dark:text-sand-200/70">
-          Poate a fost șters sau linkul este greșit.
+          {t('itineraryDetail.notFound.text')}
         </p>
         <Link to="/itinerariile-mele" className="btn-primary mx-auto mt-6 inline-flex px-5 py-2.5 text-sm">
-          Vezi itinerariile mele
+          {t('itineraryDetail.notFound.cta')}
         </Link>
       </div>
     );
@@ -78,7 +80,7 @@ export function ItineraryDetail() {
   };
 
   const addActivity = (day: number) => {
-    const title = window.prompt('Ce activitate vrei să adaugi?');
+    const title = window.prompt(t('itineraryDetail.addActivityPrompt'));
     if (!title) return;
     const newAct: ItineraryActivity = {
       id: `custom-${Date.now()}-${addCounter++}`,
@@ -87,7 +89,7 @@ export function ItineraryDetail() {
       type: 'activitate',
       durationHours: 1.5,
       cost: 0,
-      tip: 'Activitate adăugată de tine.',
+      tip: t('itineraryDetail.customActivityTip'),
     };
     updateItinerary({
       ...itinerary,
@@ -99,12 +101,12 @@ export function ItineraryDetail() {
 
   const regenDay = (day: number) => {
     if (!dest) return;
-    updateItinerary(regenerateDay(itinerary, day, dest));
+    updateItinerary(regenerateDay(itinerary, day, dest, language));
   };
 
   const setPace = (pace: Pace) => {
     if (!dest) return;
-    const fresh = generateItinerary(dest, itinerary.totalDays, itinerary.people, pace);
+    const fresh = generateItinerary(dest, itinerary.totalDays, itinerary.people, pace, language);
     updateItinerary({ ...fresh, id: itinerary.id, createdAt: itinerary.createdAt });
   };
 
@@ -112,7 +114,7 @@ export function ItineraryDetail() {
     const url = window.location.href;
     try {
       if (navigator.share) {
-        await navigator.share({ title: `Itinerar ${itinerary.destinationName}`, url });
+        await navigator.share({ title: `${t('itineraryDetail.myItineraries')}: ${itinerary.destinationName}`, url });
       } else {
         await navigator.clipboard.writeText(url);
         setShareMsg(true);
@@ -128,14 +130,14 @@ export function ItineraryDetail() {
       {/* Top bar */}
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3 print:hidden">
         <Link to="/itinerariile-mele" className="btn-ghost px-3 py-2 text-sm">
-          <ArrowLeft size={16} /> Itinerariile mele
+          <ArrowLeft size={16} /> {t('itineraryDetail.myItineraries')}
         </Link>
         <div className="flex flex-wrap items-center gap-2">
           <button onClick={share} className="btn-outline px-4 py-2 text-sm">
-            <Share2 size={15} /> {shareMsg ? 'Link copiat!' : 'Distribuie'}
+            <Share2 size={15} /> {shareMsg ? t('itineraryDetail.linkCopied') : t('itineraryDetail.share')}
           </button>
           <button onClick={() => window.print()} className="btn-navy px-4 py-2 text-sm">
-            <FileDown size={15} /> Exportă PDF
+            <FileDown size={15} /> {t('itineraryDetail.exportPdf')}
           </button>
         </div>
       </div>
@@ -150,10 +152,10 @@ export function ItineraryDetail() {
             <span className="flex items-center gap-1">
               <MapPin size={14} /> {itinerary.country}
             </span>
-            <span>{itinerary.totalDays} zile</span>
-            <span>{itinerary.people} persoane</span>
+            <span>{itinerary.totalDays} {t('common.days')}</span>
+            <span>{itinerary.people} {t('itineraryDetail.people')}</span>
             <span className="flex items-center gap-1">
-              <Wallet size={14} /> {formatMoney(totalCost, currency)} total
+              <Wallet size={14} /> {formatMoney(totalCost, currency)} {t('itineraryDetail.total')}
             </span>
           </p>
         </div>
@@ -161,27 +163,27 @@ export function ItineraryDetail() {
 
       {/* Pace controls */}
       <div className="mb-6 flex flex-wrap items-center gap-3 print:hidden">
-        <span className="text-sm font-medium">Ritm:</span>
+        <span className="text-sm font-medium">{t('itineraryDetail.pace')}</span>
         <button
           onClick={() => setPace('relaxat')}
           className={`chip text-xs ${itinerary.pace === 'relaxat' ? 'bg-turquoise-500 text-navy-950' : 'bg-navy-50 dark:bg-navy-800'}`}
         >
-          <Coffee size={13} /> Relaxat
+          <Coffee size={13} /> {t('itineraryDetail.paceRelaxed')}
         </button>
         <button
           onClick={() => setPace('echilibrat')}
           className={`chip text-xs ${itinerary.pace === 'echilibrat' ? 'bg-turquoise-500 text-navy-950' : 'bg-navy-50 dark:bg-navy-800'}`}
         >
-          Echilibrat
+          {t('itineraryDetail.paceBalanced')}
         </button>
         <button
           onClick={() => setPace('foarte-activ')}
           className={`chip text-xs ${itinerary.pace === 'foarte-activ' ? 'bg-turquoise-500 text-navy-950' : 'bg-navy-50 dark:bg-navy-800'}`}
         >
-          <Zap size={13} /> Foarte activ
+          <Zap size={13} /> {t('itineraryDetail.paceIntense')}
         </button>
         <span className="ml-auto flex items-center gap-1 text-xs text-navy-400">
-          <Check size={13} className="text-turquoise-500" /> Modificările se salvează automat
+          <Check size={13} className="text-turquoise-500" /> {t('itineraryDetail.autosave')}
         </span>
       </div>
 
@@ -198,7 +200,7 @@ export function ItineraryDetail() {
                     {day.day}
                   </span>
                   <div>
-                    <h2 className="font-display text-lg font-semibold">Ziua {day.day}</h2>
+                    <h2 className="font-display text-lg font-semibold">{t('itineraryDetail.day')} {day.day}</h2>
                     <p className="text-sm text-navy-500 dark:text-sand-200/70">{day.title}</p>
                   </div>
                 </div>
@@ -212,9 +214,9 @@ export function ItineraryDetail() {
                   <button
                     onClick={() => regenDay(day.day)}
                     className="btn-outline px-3 py-1.5 text-xs print:hidden"
-                    title="Cere AI-ului să refacă ziua"
+                    title={t('itineraryDetail.redoDayTitle')}
                   >
-                    <RefreshCw size={13} /> Refă ziua
+                    <RefreshCw size={13} /> {t('itineraryDetail.redoDay')}
                   </button>
                 </div>
               </div>
@@ -255,7 +257,7 @@ export function ItineraryDetail() {
                         onClick={() => moveActivity(day.day, i, -1)}
                         disabled={i === 0}
                         className="grid h-7 w-7 place-items-center rounded-lg text-navy-500 hover:bg-navy-100 disabled:opacity-30 dark:hover:bg-navy-800"
-                        aria-label="Mută sus"
+                        aria-label={t('itineraryDetail.moveUp')}
                       >
                         <ArrowUp size={14} />
                       </button>
@@ -263,14 +265,14 @@ export function ItineraryDetail() {
                         onClick={() => moveActivity(day.day, i, 1)}
                         disabled={i === day.activities.length - 1}
                         className="grid h-7 w-7 place-items-center rounded-lg text-navy-500 hover:bg-navy-100 disabled:opacity-30 dark:hover:bg-navy-800"
-                        aria-label="Mută jos"
+                        aria-label={t('itineraryDetail.moveDown')}
                       >
                         <ArrowDown size={14} />
                       </button>
                       <button
                         onClick={() => removeActivity(day.day, act.id)}
                         className="grid h-7 w-7 place-items-center rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10"
-                        aria-label="Elimină"
+                        aria-label={t('itineraryDetail.removeActivity')}
                       >
                         <Trash2 size={14} />
                       </button>
@@ -284,7 +286,7 @@ export function ItineraryDetail() {
                   onClick={() => addActivity(day.day)}
                   className="btn-ghost w-full py-2 text-sm text-turquoise-600 dark:text-turquoise-300"
                 >
-                  <Plus size={16} /> Adaugă activitate
+                  <Plus size={16} /> {t('itineraryDetail.addActivity')}
                 </button>
               </div>
             </div>
@@ -295,9 +297,9 @@ export function ItineraryDetail() {
       {/* Tips */}
       {dest && (
         <div className="mt-8 card-surface p-6 print:hidden">
-          <h3 className="mb-3 font-semibold">💡 Sfaturi utile pentru {dest.name}</h3>
+          <h3 className="mb-3 font-semibold">💡 {t('itineraryDetail.tipsFor')} {dest.name}</h3>
           <ul className="grid gap-2 sm:grid-cols-2">
-            {dest.goodToKnow.map((tip, i) => (
+            {localizeDestination(dest, language).goodToKnow.map((tip, i) => (
               <li key={i} className="flex gap-2 text-sm text-navy-600 dark:text-sand-200/80">
                 <span className="text-turquoise-500">•</span> {tip}
               </li>

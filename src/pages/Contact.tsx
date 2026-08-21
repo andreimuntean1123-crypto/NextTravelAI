@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { Mail, Phone, MapPin, Send, Check, MessageCircle } from 'lucide-react';
+import { useApp } from '@/context/AppContext';
 
 export function Contact() {
+  const { t } = useApp();
   const [sent, setSent] = useState(false);
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
 
@@ -15,19 +17,19 @@ export function Contact() {
   return (
     <div className="container-page py-12">
       <div className="mb-10 text-center">
-        <h1 className="text-3xl font-bold sm:text-4xl">Contact</h1>
+        <h1 className="text-3xl font-bold sm:text-4xl">{t('contact.title')}</h1>
         <p className="mx-auto mt-2 max-w-xl text-navy-500 dark:text-sand-200/70">
-          Ai o întrebare sau o sugestie? Suntem aici să te ajutăm să planifici vacanța perfectă.
+          {t('contact.subtitle')}
         </p>
       </div>
 
       <div className="grid gap-8 lg:grid-cols-[1fr_1.4fr]">
         {/* Info */}
         <div className="space-y-4">
-          <ContactCard icon={<Mail size={20} />} title="Email" value="salut@nexttravelai.ro" note="Răspundem în maxim 24h" />
-          <ContactCard icon={<Phone size={20} />} title="Telefon" value="+40 721 000 000" note="Luni–Vineri, 9:00–18:00" />
-          <ContactCard icon={<MapPin size={20} />} title="Birou" value="Str. Călătorilor 10, București" note="Programare în prealabil" />
-          <ContactCard icon={<MessageCircle size={20} />} title="Chat AI" value="Disponibil 24/7" note="Butonul din dreapta jos" />
+          <ContactCard icon={<Mail size={20} />} title={t('contact.email')} value="salut@nexttravelai.ro" note={t('contact.emailNote')} />
+          <ContactCard icon={<Phone size={20} />} title={t('contact.phone')} value="+40 721 000 000" note={t('contact.phoneNote')} />
+          <ContactCard icon={<MapPin size={20} />} title={t('contact.office')} value={t('contact.officeValue')} note={t('contact.officeNote')} />
+          <ContactCard icon={<MessageCircle size={20} />} title={t('contact.chat')} value={t('contact.chatValue')} note={t('contact.chatNote')} />
         </div>
 
         {/* Form */}
@@ -37,59 +39,59 @@ export function Contact() {
               <span className="mb-4 grid h-16 w-16 place-items-center rounded-full bg-turquoise-500 text-navy-950">
                 <Check size={30} />
               </span>
-              <h3 className="text-xl font-semibold">Mesaj trimis!</h3>
+              <h3 className="text-xl font-semibold">{t('contact.sentTitle')}</h3>
               <p className="mt-2 text-navy-500 dark:text-sand-200/70">
-                Îți mulțumim. Revenim cu un răspuns cât de curând.
+                {t('contact.sentText')}
               </p>
             </div>
           ) : (
             <form onSubmit={submit} className="space-y-4">
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="text-sm">
-                  <span className="mb-1 block font-medium">Nume</span>
+                  <span className="mb-1 block font-medium">{t('contact.formName')}</span>
                   <input
                     required
                     value={form.name}
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
                     className="input-field"
-                    placeholder="Numele tău"
+                    placeholder={t('contact.formNamePlaceholder')}
                   />
                 </label>
                 <label className="text-sm">
-                  <span className="mb-1 block font-medium">Email</span>
+                  <span className="mb-1 block font-medium">{t('contact.formEmail')}</span>
                   <input
                     required
                     type="email"
                     value={form.email}
                     onChange={(e) => setForm({ ...form, email: e.target.value })}
                     className="input-field"
-                    placeholder="email@exemplu.ro"
+                    placeholder={t('contact.formEmailPlaceholder')}
                   />
                 </label>
               </div>
               <label className="block text-sm">
-                <span className="mb-1 block font-medium">Subiect</span>
+                <span className="mb-1 block font-medium">{t('contact.formSubject')}</span>
                 <input
                   required
                   value={form.subject}
                   onChange={(e) => setForm({ ...form, subject: e.target.value })}
                   className="input-field"
-                  placeholder="Cu ce te putem ajuta?"
+                  placeholder={t('contact.formSubjectPlaceholder')}
                 />
               </label>
               <label className="block text-sm">
-                <span className="mb-1 block font-medium">Mesaj</span>
+                <span className="mb-1 block font-medium">{t('contact.formMessage')}</span>
                 <textarea
                   required
                   rows={5}
                   value={form.message}
                   onChange={(e) => setForm({ ...form, message: e.target.value })}
                   className="input-field resize-none"
-                  placeholder="Scrie-ne mesajul tău..."
+                  placeholder={t('contact.formMessagePlaceholder')}
                 />
               </label>
               <button type="submit" className="btn-primary w-full py-3 text-sm">
-                <Send size={16} /> Trimite mesajul
+                <Send size={16} /> {t('contact.send')}
               </button>
             </form>
           )}

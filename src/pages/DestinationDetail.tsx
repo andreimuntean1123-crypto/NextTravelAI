@@ -24,30 +24,33 @@ import { useCreateItinerary } from '@/hooks/useCreateItinerary';
 import { WeatherWidget } from '@/components/tools/WeatherWidget';
 import { StarRating } from '@/components/ui/StarRating';
 import { formatMoney, formatTemp, formatDuration } from '@/lib/format';
-import { tripTypeLabels } from '@/data/content';
+import { tripTypeLabel } from '@/i18n/labels';
+import { localizeDestination } from '@/i18n/destinationContent';
+import { localizeHotel } from '@/i18n/hotelContent';
 import type { BookingHotel } from '@/types';
 
 export function DestinationDetail() {
   const { id } = useParams();
-  const dest = getDestinationById(id ?? '');
-  const { currency, isFavorite, toggleFavorite, compareList, toggleCompare } = useApp();
+  const rawDest = getDestinationById(id ?? '');
+  const { currency, isFavorite, toggleFavorite, compareList, toggleCompare, language, t, tf } = useApp();
   const createItinerary = useCreateItinerary();
   const [activeImg, setActiveImg] = useState(0);
   const [selectedHotel, setSelectedHotel] = useState<BookingHotel | null>(null);
   const destHotels = getHotelsByDestination(id ?? '');
 
-  if (!dest) {
+  if (!rawDest) {
     return (
       <div className="container-page py-20 text-center">
-        <h1 className="text-2xl font-bold">Destinația nu a fost găsită</h1>
+        <h1 className="text-2xl font-bold">{t('destDetail.notFound.title')}</h1>
         <Link to="/orase" className="btn-primary mx-auto mt-6 inline-flex px-5 py-2.5 text-sm">
-          Descoperă destinații
+          {t('destDetail.discover')}
         </Link>
       </div>
     );
   }
 
-  const inCompare = compareList.includes(dest.id);
+  const dest = localizeDestination(rawDest, language);
+  const inCompare = compareList.includes(rawDest.id);
   const gallery = [dest.image, ...dest.gallery];
 
   return (
@@ -58,16 +61,16 @@ export function DestinationDetail() {
         <div className="absolute inset-0 bg-gradient-to-t from-navy-950/85 via-navy-950/20 to-navy-950/30" />
         <div className="container-page absolute inset-x-0 top-4">
           <Link to="/orase" className="btn border border-white/30 bg-white/10 px-3 py-2 text-sm text-white backdrop-blur hover:bg-white/20">
-            <ArrowLeft size={16} /> Înapoi
+            <ArrowLeft size={16} /> {t('destDetail.back')}
           </Link>
         </div>
         <div className="container-page absolute inset-x-0 bottom-0 pb-6 text-white">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
               <div className="mb-2 flex flex-wrap gap-1.5">
-                {dest.tags.map((t) => (
-                  <span key={t} className="chip bg-white/15 text-white backdrop-blur">
-                    {tripTypeLabels[t]}
+                {dest.tags.map((tag) => (
+                  <span key={tag} className="chip bg-white/15 text-white backdrop-blur">
+                    {tripTypeLabel(language, tag)}
                   </span>
                 ))}
               </div>
@@ -105,14 +108,14 @@ export function DestinationDetail() {
         <div className="space-y-8">
           {/* Quick facts */}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <FactCard icon={<Thermometer size={18} />} label="Temperatură" value={formatTemp(dest.avgTempC)} />
-            <FactCard icon={<Clock size={18} />} label="Durată ideală" value={`${dest.recommendedDays} zile`} />
-            <FactCard icon={<Globe size={18} />} label="Preț / zi" value={formatMoney(dest.pricePerDay, currency)} />
-            <FactCard icon={<Star size={18} />} label="Popularitate" value={`${dest.popularity}%`} />
+            <FactCard icon={<Thermometer size={18} />} label={t('destDetail.temperature')} value={formatTemp(dest.avgTempC)} />
+            <FactCard icon={<Clock size={18} />} label={t('destDetail.idealDuration')} value={`${dest.recommendedDays} ${t('common.days')}`} />
+            <FactCard icon={<Globe size={18} />} label={t('destDetail.pricePerDay')} value={formatMoney(dest.pricePerDay, currency)} />
+            <FactCard icon={<Star size={18} />} label={t('destDetail.popularity')} value={`${dest.popularity}%`} />
           </div>
 
           <section>
-            <h2 className="mb-3 text-2xl font-bold">Despre {dest.name}</h2>
+            <h2 className="mb-3 text-2xl font-bold">{t('destDetail.about')} {dest.name}</h2>
             <p className="leading-relaxed text-navy-600 dark:text-sand-200/80">{dest.description}</p>
             <div className="mt-4 flex flex-wrap gap-4 text-sm text-navy-500 dark:text-sand-200/70">
               <span className="flex items-center gap-1.5">
@@ -126,7 +129,7 @@ export function DestinationDetail() {
 
           {/* Highlights */}
           <section>
-            <h3 className="mb-3 text-lg font-semibold">Puncte forte</h3>
+            <h3 className="mb-3 text-lg font-semibold">{t('destDetail.highlights')}</h3>
             <div className="flex flex-wrap gap-2">
               {dest.highlights.map((h) => (
                 <span key={h} className="chip bg-turquoise-50 text-turquoise-700 dark:bg-navy-800 dark:text-turquoise-300">
@@ -137,7 +140,7 @@ export function DestinationDetail() {
           </section>
 
           {/* Attractions */}
-          <Section icon={<Ticket size={18} />} title="Obiective turistice">
+          <Section icon={<Ticket size={18} />} title={t('destDetail.attractions')}>
             <div className="grid gap-3 sm:grid-cols-2">
               {dest.attractions.map((a) => (
                 <div key={a.name} className="rounded-2xl border border-navy-100 p-4 dark:border-navy-800">
@@ -147,7 +150,7 @@ export function DestinationDetail() {
                   </div>
                   <p className="mt-1 text-sm text-navy-500 dark:text-sand-200/70">{a.description}</p>
                   <p className="mt-2 text-xs text-navy-400">
-                    {formatDuration(a.durationHours)} • {a.cost ? formatMoney(a.cost, currency) : 'gratuit'}
+                    {formatDuration(a.durationHours)} • {a.cost ? formatMoney(a.cost, currency) : t('common.free')}
                   </p>
                 </div>
               ))}
@@ -159,17 +162,19 @@ export function DestinationDetail() {
             <div className="mb-3 flex items-center justify-between">
               <h3 className="flex items-center gap-2 text-lg font-semibold">
                 <span className="text-turquoise-500"><BedDouble size={18} /></span>
-                Hoteluri în {dest.name} <span className="text-navy-400">({destHotels.length})</span>
+                {t('destDetail.hotelsIn')} {dest.name} <span className="text-navy-400">({destHotels.length})</span>
               </h3>
-              <Link to={`/hoteluri?dest=${dest.id}`} className="text-sm font-semibold text-turquoise-600 dark:text-turquoise-300">
-                Vezi toate →
+              <Link to={`/hoteluri?dest=${rawDest.id}`} className="text-sm font-semibold text-turquoise-600 dark:text-turquoise-300">
+                {t('destDetail.seeAll')} →
               </Link>
             </div>
             <div className="space-y-3">
-              {destHotels.slice(0, 4).map((h) => (
+              {destHotels.slice(0, 4).map((raw) => {
+                const h = localizeHotel(raw, language);
+                return (
                 <button
                   key={h.id}
-                  onClick={() => setSelectedHotel(h)}
+                  onClick={() => setSelectedHotel(raw)}
                   className="flex w-full items-center gap-3 rounded-2xl border border-navy-100 p-3 text-left transition hover:border-turquoise-400 dark:border-navy-800"
                 >
                   <img src={h.image} alt={h.name} className="h-20 w-24 shrink-0 rounded-xl object-cover" />
@@ -178,7 +183,7 @@ export function DestinationDetail() {
                       {h.name} <span className="text-gold-500">{'★'.repeat(h.stars)}</span>
                     </p>
                     <p className="text-xs text-navy-500 dark:text-sand-200/70">
-                      {h.neighborhood} • {h.distanceFromCenterKm} km de centru • {h.rooms.length} tipuri de cameră
+                      {h.neighborhood} • {h.distanceFromCenterKm} km {t('destDetail.fromCenter')} • {h.rooms.length} {t('destDetail.roomTypes')}
                     </p>
                     <div className="mt-1 flex items-center gap-2">
                       <span className="grid h-6 min-w-6 place-items-center rounded bg-navy-800 px-1.5 text-xs font-bold text-white dark:bg-turquoise-500 dark:text-navy-950">
@@ -189,19 +194,20 @@ export function DestinationDetail() {
                     </div>
                   </div>
                   <div className="shrink-0 text-right">
-                    <p className="text-xs text-navy-400">de la</p>
+                    <p className="text-xs text-navy-400">{t('common.from')}</p>
                     <p className="text-lg font-bold text-turquoise-600 dark:text-turquoise-300">
                       {formatMoney(cheapestRoomPrice(h), currency)}
                     </p>
-                    <p className="text-xs text-navy-400">/ noapte</p>
+                    <p className="text-xs text-navy-400">{t('common.perNight')}</p>
                   </div>
                 </button>
-              ))}
+                );
+              })}
             </div>
           </section>
 
           {/* Restaurants */}
-          <Section icon={<Utensils size={18} />} title="Restaurante recomandate">
+          <Section icon={<Utensils size={18} />} title={t('destDetail.restaurants')}>
             <div className="grid gap-3 sm:grid-cols-3">
               {dest.restaurants.map((r) => (
                 <div key={r.name} className="rounded-2xl border border-navy-100 p-4 dark:border-navy-800">
@@ -222,38 +228,38 @@ export function DestinationDetail() {
         {/* Sidebar */}
         <aside className="space-y-5 lg:sticky lg:top-20 lg:self-start">
           <div className="card-surface p-5">
-            <p className="text-sm text-navy-400">Cost estimativ vacanță</p>
+            <p className="text-sm text-navy-400">{t('destDetail.estimatedCost')}</p>
             <p className="text-2xl font-bold text-turquoise-600 dark:text-turquoise-300">
               {formatMoney(dest.pricePerDay * dest.recommendedDays * 2, currency)}
             </p>
             <p className="mb-4 text-xs text-navy-400">
-              {dest.recommendedDays} zile • 2 persoane (estimativ)
+              {tf('destDetail.estimatedFor', { days: dest.recommendedDays })}
             </p>
-            <button onClick={() => createItinerary(dest)} className="btn-primary w-full py-3 text-sm">
-              <Map size={16} /> Creează itinerarul
+            <button onClick={() => createItinerary(rawDest)} className="btn-primary w-full py-3 text-sm">
+              <Map size={16} /> {t('destDetail.createItinerary')}
             </button>
             <div className="mt-2 flex gap-2">
-              <button onClick={() => toggleFavorite(dest.id, `${dest.name}, ${dest.country}`)} className="btn-outline flex-1 py-2.5 text-sm">
-                <Heart size={15} className={isFavorite(dest.id) ? 'fill-red-500 text-red-500' : ''} />
-                {isFavorite(dest.id) ? 'Salvat' : 'Favorite'}
+              <button onClick={() => toggleFavorite(rawDest.id, `${dest.name}, ${dest.country}`)} className="btn-outline flex-1 py-2.5 text-sm">
+                <Heart size={15} className={isFavorite(rawDest.id) ? 'fill-red-500 text-red-500' : ''} />
+                {isFavorite(rawDest.id) ? t('destDetail.saved') : t('destDetail.favorites')}
               </button>
               <Link
                 to="/compara"
-                onClick={() => !inCompare && toggleCompare(dest.id)}
+                onClick={() => !inCompare && toggleCompare(rawDest.id)}
                 className={`btn flex-1 justify-center py-2.5 text-sm ${inCompare ? 'bg-gold-500 text-navy-950' : 'btn-outline'}`}
               >
-                <Scale size={15} /> Compară
+                <Scale size={15} /> {t('destDetail.compare')}
               </Link>
             </div>
-            <Link to={`/hoteluri?dest=${dest.id}`} className="btn-outline mt-2 w-full justify-center py-2.5 text-sm">
-              <BedDouble size={15} /> Vezi toate hotelurile ({destHotels.length})
+            <Link to={`/hoteluri?dest=${rawDest.id}`} className="btn-outline mt-2 w-full justify-center py-2.5 text-sm">
+              <BedDouble size={15} /> {tf('destDetail.viewAllHotels', { n: destHotels.length })}
             </Link>
           </div>
 
-          <WeatherWidget destination={dest} />
+          <WeatherWidget destination={rawDest} />
 
           <div className="card-surface p-5">
-            <h3 className="mb-2 font-semibold">Bine de știut</h3>
+            <h3 className="mb-2 font-semibold">{t('destDetail.goodToKnow')}</h3>
             <ul className="space-y-2">
               {dest.goodToKnow.map((tip, i) => (
                 <li key={i} className="flex gap-2 text-sm text-navy-600 dark:text-sand-200/80">
@@ -265,11 +271,11 @@ export function DestinationDetail() {
 
           <div className="card-surface p-5">
             <div className="mb-1 flex items-center justify-between">
-              <h3 className="font-semibold">Rating vizitatori</h3>
+              <h3 className="font-semibold">{t('destDetail.visitorRating')}</h3>
               <StarRating value={dest.rating / 2} />
             </div>
             <p className="text-sm text-navy-500 dark:text-sand-200/70">
-              {dest.rating}/10 pe baza recenziilor comunității.
+              {tf('destDetail.basedOnReviews', { rating: dest.rating })}
             </p>
           </div>
         </aside>

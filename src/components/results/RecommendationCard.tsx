@@ -13,14 +13,16 @@ import { useApp } from '@/context/AppContext';
 import { useCreateItinerary } from '@/hooks/useCreateItinerary';
 import { MatchRing } from '@/components/ui/MatchRing';
 import { formatMoney, formatTemp, pluralDays } from '@/lib/format';
-import { tripTypeLabels } from '@/data/content';
+import { tripTypeLabel } from '@/i18n/labels';
+import { localizeDestination } from '@/i18n/destinationContent';
 import type { Recommendation } from '@/types';
 
 export function RecommendationCard({ rec, rank }: { rec: Recommendation; rank: number }) {
-  const { currency, isFavorite, toggleFavorite, compareList, toggleCompare } = useApp();
+  const { currency, isFavorite, toggleFavorite, compareList, toggleCompare, t, tf, language } = useApp();
   const createItinerary = useCreateItinerary();
-  const d = rec.destination;
-  const inCompare = compareList.includes(d.id);
+  const raw = rec.destination;
+  const d = localizeDestination(raw, language);
+  const inCompare = compareList.includes(raw.id);
 
   return (
     <article className="card-surface overflow-hidden animate-slide-up">
@@ -29,12 +31,12 @@ export function RecommendationCard({ rec, rank }: { rec: Recommendation; rank: n
         <div className="relative aspect-[4/3] md:aspect-auto">
           <img src={d.image} alt={d.name} className="h-full w-full object-cover" />
           <span className="absolute left-3 top-3 rounded-full bg-navy-900/80 px-3 py-1 text-xs font-bold text-white backdrop-blur">
-            #{rank} recomandare
+            {tf('recCard.rank', { n: rank })}
           </span>
           <button
             onClick={() => toggleFavorite(d.id, `${d.name}, ${d.country}`)}
             className="absolute right-3 top-3 grid h-10 w-10 place-items-center rounded-full bg-white/90 backdrop-blur transition hover:scale-110"
-            aria-label="Favorite"
+            aria-label={t('recCard.favoriteAria')}
           >
             <Heart size={18} className={isFavorite(d.id) ? 'fill-red-500 text-red-500' : 'text-navy-600'} />
           </button>
@@ -51,26 +53,26 @@ export function RecommendationCard({ rec, rank }: { rec: Recommendation; rank: n
             </div>
             <div className="text-center">
               <MatchRing score={rec.matchScore} />
-              <p className="mt-1 text-[11px] font-medium text-navy-400">potrivire</p>
+              <p className="mt-1 text-[11px] font-medium text-navy-400">{t('recCard.match')}</p>
             </div>
           </div>
 
           {/* Quick facts */}
           <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm">
             <Fact icon={<Thermometer size={15} />} value={formatTemp(d.avgTempC)} />
-            <Fact icon={<Clock size={15} />} value={pluralDays(d.recommendedDays)} />
+            <Fact icon={<Clock size={15} />} value={pluralDays(d.recommendedDays, language)} />
             <Fact
               icon={<Sparkles size={15} />}
-              value={d.tags.slice(0, 2).map((t) => tripTypeLabels[t]).join(', ')}
+              value={d.tags.slice(0, 2).map((ty) => tripTypeLabel(language, ty)).join(', ')}
             />
             <span className="font-bold text-turquoise-600 dark:text-turquoise-300">
-              de la {formatMoney(rec.estimatedPrice, currency)}
+              {t('common.from')} {formatMoney(rec.estimatedPrice, currency)}
             </span>
           </div>
 
           {/* Reasons */}
           <div className="mt-4">
-            <p className="mb-1.5 text-sm font-semibold">De ce ți se potrivește:</p>
+            <p className="mb-1.5 text-sm font-semibold">{t('recCard.whyMatches')}</p>
             <ul className="space-y-1">
               {rec.reasons.map((r, i) => (
                 <li key={i} className="flex gap-2 text-sm text-navy-600 dark:text-sand-200/80">
@@ -85,7 +87,7 @@ export function RecommendationCard({ rec, rank }: { rec: Recommendation; rank: n
             {rec.pros.length > 0 && (
               <div className="rounded-xl bg-turquoise-50/60 p-3 dark:bg-navy-800">
                 <p className="mb-1 flex items-center gap-1.5 text-xs font-semibold text-turquoise-700 dark:text-turquoise-300">
-                  <ThumbsUp size={13} /> Avantaje
+                  <ThumbsUp size={13} /> {t('recCard.pros')}
                 </p>
                 <ul className="space-y-0.5 text-xs text-navy-600 dark:text-sand-200/80">
                   {rec.pros.map((p, i) => (
@@ -97,7 +99,7 @@ export function RecommendationCard({ rec, rank }: { rec: Recommendation; rank: n
             {rec.cons.length > 0 && (
               <div className="rounded-xl bg-gold-400/10 p-3">
                 <p className="mb-1 flex items-center gap-1.5 text-xs font-semibold text-gold-600">
-                  <ThumbsDown size={13} /> De luat în calcul
+                  <ThumbsDown size={13} /> {t('recCard.cons')}
                 </p>
                 <ul className="space-y-0.5 text-xs text-navy-600 dark:text-sand-200/80">
                   {rec.cons.map((c, i) => (
@@ -111,14 +113,14 @@ export function RecommendationCard({ rec, rank }: { rec: Recommendation; rank: n
           {/* Actions */}
           <div className="mt-5 flex flex-wrap gap-2">
             <button onClick={() => createItinerary(d)} className="btn-primary flex-1 px-4 py-2.5 text-sm">
-              <Map size={16} /> Vezi itinerarul
+              <Map size={16} /> {t('common.viewItinerary')}
             </button>
             <button
               onClick={() => toggleFavorite(d.id, `${d.name}, ${d.country}`)}
               className="btn-outline px-4 py-2.5 text-sm"
             >
               <Heart size={16} className={isFavorite(d.id) ? 'fill-red-500 text-red-500' : ''} />
-              {isFavorite(d.id) ? 'Salvat' : 'Favorite'}
+              {isFavorite(d.id) ? t('common.saved') : t('recCard.favoriteBtn')}
             </button>
             <button
               onClick={() => toggleCompare(d.id)}
@@ -126,7 +128,7 @@ export function RecommendationCard({ rec, rank }: { rec: Recommendation; rank: n
                 inCompare ? 'bg-gold-500 text-navy-950' : 'btn-outline'
               }`}
             >
-              <Scale size={16} /> Compară
+              <Scale size={16} /> {t('common.compare')}
             </button>
           </div>
         </div>

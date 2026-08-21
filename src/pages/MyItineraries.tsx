@@ -3,31 +3,29 @@ import { Map, Trash2, Calendar, Users, Wallet, Compass } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { itineraryTotalCost } from '@/lib/itinerary';
 import { formatMoney } from '@/lib/format';
+import { localeOf } from '@/i18n/translations';
 
 export function MyItineraries() {
-  const { itineraries, deleteItinerary, currency } = useApp();
+  const { itineraries, deleteItinerary, currency, t, tf, language } = useApp();
 
   return (
     <div className="container-page py-10">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold">Itinerariile mele</h1>
+        <h1 className="text-3xl font-bold">{t('myItineraries.title')}</h1>
         <p className="mt-1 text-navy-500 dark:text-sand-200/70">
-          {itineraries.length
-            ? `${itineraries.length} itinerare salvate pe acest dispozitiv.`
-            : 'Aici apar itinerarele pe care le creezi.'}
+          {itineraries.length ? tf('myItineraries.subtitleFilled', { n: itineraries.length }) : t('myItineraries.subtitleEmpty')}
         </p>
       </div>
 
       {itineraries.length === 0 ? (
         <div className="card-surface flex flex-col items-center justify-center py-20 text-center">
           <Map size={48} className="mb-4 text-navy-300" />
-          <h3 className="text-xl font-semibold">Niciun itinerar încă</h3>
+          <h3 className="text-xl font-semibold">{t('myItineraries.empty.title')}</h3>
           <p className="mt-2 max-w-sm text-navy-500 dark:text-sand-200/70">
-            Alege o destinație și apasă „Creează itinerarul" sau lasă agentul AI să îți construiască
-            unul.
+            {t('myItineraries.empty.text')}
           </p>
           <Link to="/orase" className="btn-primary mt-6 px-5 py-2.5 text-sm">
-            <Compass size={16} /> Descoperă destinații
+            <Compass size={16} /> {t('myItineraries.explore')}
           </Link>
         </div>
       ) : (
@@ -49,26 +47,26 @@ export function MyItineraries() {
               <div className="p-4">
                 <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-navy-500 dark:text-sand-200/70">
                   <span className="flex items-center gap-1">
-                    <Calendar size={13} /> {it.totalDays} zile
+                    <Calendar size={13} /> {it.totalDays} {t('common.days')}
                   </span>
                   <span className="flex items-center gap-1">
-                    <Users size={13} /> {it.people} pers.
+                    <Users size={13} /> {it.people} {t('itineraryDetail.people')}
                   </span>
                   <span className="flex items-center gap-1">
                     <Wallet size={13} /> {formatMoney(itineraryTotalCost(it), currency)}
                   </span>
                 </div>
                 <p className="mt-2 text-xs text-navy-400">
-                  Creat pe {new Date(it.createdAt).toLocaleDateString('ro-RO')}
+                  {t('myItineraries.createdOn')} {new Date(it.createdAt).toLocaleDateString(localeOf(language))}
                 </p>
                 <div className="mt-3 flex gap-2">
                   <Link to={`/itinerar/${it.id}`} className="btn-primary flex-1 py-2 text-sm">
-                    Deschide
+                    {t('myItineraries.open')}
                   </Link>
                   <button
                     onClick={() => deleteItinerary(it.id)}
                     className="btn-outline px-3 py-2 text-sm text-red-500"
-                    aria-label="Șterge itinerarul"
+                    aria-label={t('myItineraries.deleteAria')}
                   >
                     <Trash2 size={15} />
                   </button>

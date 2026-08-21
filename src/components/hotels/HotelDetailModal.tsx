@@ -12,7 +12,8 @@ import {
 } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { useApp } from '@/context/AppContext';
-import { propertyTypeLabels, boardLabels } from '@/data/hotels';
+import { propertyTypeLabel, boardLabel } from '@/i18n/labels';
+import { localizeHotel } from '@/i18n/hotelContent';
 import { getDestinationById } from '@/data/destinations';
 import { formatMoney } from '@/lib/format';
 import type { BookingHotel, HotelRoom } from '@/types';
@@ -23,17 +24,18 @@ interface Props {
   onClose: () => void;
 }
 
-export function HotelDetailModal({ hotel, nights, onClose }: Props) {
-  const { currency, isHotelSaved, toggleHotel } = useApp();
+export function HotelDetailModal({ hotel: rawHotel, nights, onClose }: Props) {
+  const { currency, isHotelSaved, toggleHotel, language, t, tf } = useApp();
   const [activeImg, setActiveImg] = useState(0);
   const [booked, setBooked] = useState<string | null>(null);
 
-  if (!hotel) return null;
+  if (!rawHotel) return null;
+  const hotel = localizeHotel(rawHotel, language);
   const dest = getDestinationById(hotel.destinationId);
   const gallery = hotel.gallery.length ? hotel.gallery : [hotel.image];
 
   return (
-    <Modal open={!!hotel} onClose={onClose} size="xl">
+    <Modal open={!!rawHotel} onClose={onClose} size="xl">
       {/* Header */}
       <div className="mb-4 flex items-start justify-between gap-4 pr-8">
         <div>
@@ -47,15 +49,15 @@ export function HotelDetailModal({ hotel, nights, onClose }: Props) {
           </div>
           <p className="mt-1 flex items-center gap-1 text-sm text-navy-500 dark:text-sand-200/70">
             <MapPin size={14} /> {hotel.neighborhood}
-            {dest ? `, ${dest.name}, ${dest.country}` : ''} • {hotel.distanceFromCenterKm} km de centru
+            {dest ? `, ${dest.name}, ${dest.country}` : ''} • {hotel.distanceFromCenterKm} km {t('destDetail.fromCenter')}
           </p>
         </div>
         <button
-          onClick={() => toggleHotel(hotel.id, hotel.name)}
+          onClick={() => toggleHotel(rawHotel.id, hotel.name)}
           className="btn-outline shrink-0 px-3 py-2 text-sm"
         >
-          <Heart size={15} className={isHotelSaved(hotel.id) ? 'fill-red-500 text-red-500' : ''} />
-          {isHotelSaved(hotel.id) ? 'Salvat' : 'Salvează'}
+          <Heart size={15} className={isHotelSaved(rawHotel.id) ? 'fill-red-500 text-red-500' : ''} />
+          {isHotelSaved(rawHotel.id) ? t('hotelModal.saved') : t('hotelModal.save')}
         </button>
       </div>
 
@@ -84,17 +86,17 @@ export function HotelDetailModal({ hotel, nights, onClose }: Props) {
             {hotel.reviewScore.toFixed(1)}
           </span>
           <span className="text-sm">
-            <strong>{hotel.reviewLabel}</strong> · {hotel.reviewCount.toLocaleString('ro-RO')} recenzii
+            <strong>{hotel.reviewLabel}</strong> · {hotel.reviewCount.toLocaleString('ro-RO')} {t('hotelModal.reviews')}
           </span>
         </span>
-        <span className="chip bg-navy-50 dark:bg-navy-800">{propertyTypeLabels[hotel.propertyType]}</span>
+        <span className="chip bg-navy-50 dark:bg-navy-800">{propertyTypeLabel(language, hotel.propertyType)}</span>
         {hotel.sustainable && (
           <span className="chip bg-turquoise-50 text-turquoise-700 dark:bg-navy-800 dark:text-turquoise-300">
-            <Leaf size={13} /> Sustenabil
+            <Leaf size={13} /> {t('hotelModal.sustainable')}
           </span>
         )}
         <span className="flex items-center gap-1 text-xs text-navy-400">
-          <Users size={13} /> Popular la: {hotel.popularWith.join(', ')}
+          <Users size={13} /> {t('hotelModal.popularWith')}: {hotel.popularWith.join(', ')}
         </span>
       </div>
 
@@ -104,7 +106,7 @@ export function HotelDetailModal({ hotel, nights, onClose }: Props) {
 
       {/* Amenities */}
       <div className="mb-6">
-        <h3 className="mb-2 font-semibold">Facilități</h3>
+        <h3 className="mb-2 font-semibold">{t('hotelModal.amenities')}</h3>
         <div className="flex flex-wrap gap-2">
           {hotel.amenities.map((a) => (
             <span key={a} className="chip bg-navy-50 text-navy-600 dark:bg-navy-800 dark:text-sand-200">
@@ -117,7 +119,7 @@ export function HotelDetailModal({ hotel, nights, onClose }: Props) {
       {/* Rooms */}
       <div>
         <h3 className="mb-3 font-semibold">
-          Camere disponibile <span className="text-navy-400">({hotel.rooms.length})</span>
+          {t('hotelModal.roomsAvailable')} <span className="text-navy-400">({hotel.rooms.length})</span>
         </h3>
         <div className="space-y-3">
           {hotel.rooms.map((room, i) => (
@@ -137,8 +139,7 @@ export function HotelDetailModal({ hotel, nights, onClose }: Props) {
       </div>
 
       <p className="mt-5 rounded-xl bg-navy-50 p-3 text-center text-xs text-navy-400 dark:bg-navy-800">
-        Prețuri și disponibilitate demonstrative. Pregătit pentru conectarea la Booking
-        (VITE_HOTELS_API_KEY). Regim de masă: {boardLabels[hotel.board]}.
+        {tf('hotelModal.footerNote', { board: boardLabel(language, hotel.board) })}
       </p>
     </Modal>
   );
@@ -157,13 +158,14 @@ function RoomRow({
   booked: boolean;
   onBook: () => void;
 }) {
+  const { t, tf } = useApp();
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-navy-100 p-4 dark:border-navy-800">
       <div className="min-w-0 flex-1">
         <p className="font-medium">{room.name}</p>
         <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-navy-500 dark:text-sand-200/70">
           <span className="flex items-center gap-1">
-            <Users size={12} /> {room.capacity} persoane
+            <Users size={12} /> {room.capacity} {t('hotelModal.guests')}
           </span>
           <span className="flex items-center gap-1">
             <BedDouble size={12} /> {room.beds}
@@ -175,27 +177,29 @@ function RoomRow({
         <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-xs">
           {room.freeCancellation && (
             <span className="flex items-center gap-1 text-turquoise-600 dark:text-turquoise-300">
-              <Check size={12} /> Anulare gratuită
+              <Check size={12} /> {t('hotelModal.freeCancellation')}
             </span>
           )}
           {room.breakfastIncluded && (
             <span className="flex items-center gap-1 text-navy-500 dark:text-sand-200/70">
-              <Coffee size={12} /> Mic dejun inclus
+              <Coffee size={12} /> {t('hotelModal.breakfastIncluded')}
             </span>
           )}
-          <span className="text-red-500">Mai sunt {room.roomsLeft} camere</span>
+          {room.roomsLeft !== undefined && (
+            <span className="text-red-500">{tf('hotelModal.roomsLeft', { n: room.roomsLeft })}</span>
+          )}
         </div>
       </div>
       <div className="text-right">
         <p className="text-lg font-bold">{formatMoney(room.pricePerNight * nights, currency)}</p>
         <p className="text-xs text-navy-400">
-          {formatMoney(room.pricePerNight, currency)} × {nights} {nights === 1 ? 'noapte' : 'nopți'}
+          {formatMoney(room.pricePerNight, currency)} × {nights} {nights === 1 ? t('hotels.night') : t('hotels.nights')}
         </p>
         <button
           onClick={onBook}
           className={`mt-2 px-4 py-2 text-sm ${booked ? 'btn-navy' : 'btn-primary'}`}
         >
-          {booked ? (<><Check size={15} /> Rezervat!</>) : 'Rezervă'}
+          {booked ? (<><Check size={15} /> {t('hotelModal.booked')}</>) : t('hotelModal.book')}
         </button>
       </div>
     </div>

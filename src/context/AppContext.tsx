@@ -7,7 +7,7 @@ import {
   type ReactNode,
 } from 'react';
 import { loadStorage, saveStorage, STORAGE_KEYS } from '@/lib/storage';
-import { translate, type TranslationKey } from '@/i18n/translations';
+import { translate, tf as tfBase, type TranslationKey } from '@/i18n/translations';
 import type {
   Theme,
   Language,
@@ -32,6 +32,7 @@ interface AppContextValue {
   currency: Currency;
   setCurrency: (c: Currency) => void;
   t: (key: TranslationKey) => string;
+  tf: (key: TranslationKey, vars: Record<string, string | number>) => string;
 
   // Favorite
   favorites: string[];
@@ -189,6 +190,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const setLanguage = useCallback((l: Language) => setLanguageState(l), []);
   const setCurrency = useCallback((c: Currency) => setCurrencyState(c), []);
   const t = useCallback((key: TranslationKey) => translate(language, key), [language]);
+  const tf = useCallback(
+    (key: TranslationKey, vars: Record<string, string | number>) => tfBase(language, key, vars),
+    [language],
+  );
 
   // Istoric activitate (zi + oră) — stabil, folosit din alte acțiuni.
   const logActivity = useCallback((type: ActivityType, text: string) => {
@@ -312,6 +317,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     currency,
     setCurrency,
     t,
+    tf,
     favorites,
     toggleFavorite,
     isFavorite,

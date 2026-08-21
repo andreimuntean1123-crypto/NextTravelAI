@@ -2,7 +2,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Heart, MapPin, Thermometer, Scale, ArrowRight } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { formatMoney, formatTemp } from '@/lib/format';
-import { tripTypeLabels } from '@/data/content';
+import { tripTypeLabel } from '@/i18n/labels';
+import { localizeDestination } from '@/i18n/destinationContent';
 import type { Destination } from '@/types';
 
 interface Props {
@@ -10,10 +11,11 @@ interface Props {
   matchScore?: number;
 }
 
-export function DestinationCard({ destination: d, matchScore }: Props) {
-  const { currency, isFavorite, toggleFavorite, compareList, toggleCompare } = useApp();
+export function DestinationCard({ destination: raw, matchScore }: Props) {
+  const { currency, isFavorite, toggleFavorite, compareList, toggleCompare, language, t, tf } = useApp();
   const navigate = useNavigate();
-  const inCompare = compareList.includes(d.id);
+  const inCompare = compareList.includes(raw.id);
+  const d = localizeDestination(raw, language);
 
   return (
     <article className="group card-surface overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-soft-lg">
@@ -27,19 +29,19 @@ export function DestinationCard({ destination: d, matchScore }: Props) {
         <div className="absolute inset-0 bg-gradient-to-t from-navy-950/70 via-transparent to-transparent" />
 
         <button
-          onClick={() => toggleFavorite(d.id, `${d.name}, ${d.country}`)}
-          aria-label={isFavorite(d.id) ? 'Elimină de la favorite' : 'Salvează la favorite'}
+          onClick={() => toggleFavorite(raw.id, `${d.name}, ${d.country}`)}
+          aria-label={isFavorite(raw.id) ? t('common.removeFavorite') : t('common.saveFavorite')}
           className="absolute right-3 top-3 grid h-10 w-10 place-items-center rounded-full bg-white/90 backdrop-blur transition hover:scale-110"
         >
           <Heart
             size={18}
-            className={isFavorite(d.id) ? 'fill-red-500 text-red-500' : 'text-navy-600'}
+            className={isFavorite(raw.id) ? 'fill-red-500 text-red-500' : 'text-navy-600'}
           />
         </button>
 
         {matchScore !== undefined && (
           <span className="absolute left-3 top-3 rounded-full bg-turquoise-500 px-3 py-1 text-xs font-bold text-navy-950 shadow">
-            {matchScore}% potrivire
+            {tf('destCard.matchPercent', { n: matchScore })}
           </span>
         )}
 
@@ -63,7 +65,7 @@ export function DestinationCard({ destination: d, matchScore }: Props) {
               key={tag}
               className="chip bg-turquoise-50 text-turquoise-700 dark:bg-navy-800 dark:text-turquoise-300"
             >
-              {tripTypeLabels[tag]}
+              {tripTypeLabel(language, tag)}
             </span>
           ))}
         </div>
@@ -77,18 +79,18 @@ export function DestinationCard({ destination: d, matchScore }: Props) {
             <Thermometer size={14} /> {formatTemp(d.avgTempC)}
           </span>
           <span className="font-semibold text-turquoise-600 dark:text-turquoise-300">
-            {formatMoney(d.pricePerDay, currency)} <span className="font-normal text-navy-400">/ zi</span>
+            {formatMoney(d.pricePerDay, currency)} <span className="font-normal text-navy-400">{t('common.perDay')}</span>
           </span>
         </div>
 
         <div className="flex items-center gap-2">
-          <Link to={`/destinatie/${d.id}`} className="btn-primary flex-1 px-4 py-2 text-sm">
-            Detalii <ArrowRight size={15} />
+          <Link to={`/destinatie/${raw.id}`} className="btn-primary flex-1 px-4 py-2 text-sm">
+            {t('common.details')} <ArrowRight size={15} />
           </Link>
           <button
-            onClick={() => toggleCompare(d.id)}
-            aria-label="Compară"
-            title="Adaugă la comparație"
+            onClick={() => toggleCompare(raw.id)}
+            aria-label={t('destCard.compareAria')}
+            title={t('destCard.compareTitle')}
             className={`btn px-3 py-2 text-sm ${
               inCompare
                 ? 'bg-gold-500 text-navy-950'

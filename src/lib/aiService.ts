@@ -1,8 +1,8 @@
 import { generateDemoReply, makeMessage } from '@/lib/aiChat';
 import { getAiConfig } from '@/lib/aiConfig';
 import { destinations } from '@/data/destinations';
-import { tripTypeLabels } from '@/data/content';
-import type { ChatMessage, TravelPreferences } from '@/types';
+import { tripTypeLabel } from '@/i18n/labels';
+import type { ChatMessage, Language, TravelPreferences } from '@/types';
 
 // ─────────────────────────────────────────────────────────────
 //  Strat de servicii AI — punct unic de integrare.
@@ -19,9 +19,21 @@ export function isLiveAiConfigured(): boolean {
   return provider !== 'demo' && apiKey.trim().length > 0;
 }
 
-function buildSystemPrompt(prefs: TravelPreferences): string {
+const LANGUAGE_NAMES: Record<Language, string> = {
+  ro: 'română',
+  en: 'English',
+  ru: 'русском',
+};
+
+const NO_RESPONSE_MESSAGE: Record<Language, string> = {
+  ro: 'Îmi pare rău, nu am putut genera un răspuns.',
+  en: "Sorry, I couldn't generate a response.",
+  ru: 'Извините, не удалось сгенерировать ответ.',
+};
+
+function buildSystemPrompt(prefs: TravelPreferences, lang: Language): string {
   const destList = destinations
-    .map((d) => `${d.name} (${d.country}) — de la ${d.pricePerDay}€/zi, ${d.tags.map((t) => tripTypeLabels[t]).join('/')}`)
+    .map((d) => `${d.name} (${d.country}) — de la ${d.pricePerDay}€/zi, ${d.tags.map((t) => tripTypeLabel(lang, t)).join('/')}`)
     .join('; ');
 
   const prefsSummary = Object.entries(prefs)
@@ -30,7 +42,7 @@ function buildSystemPrompt(prefs: TravelPreferences): string {
     .join('; ');
 
   return (
-    'Ești agentul personal de călătorii NextTravelAI. Răspunzi în limba română, ' +
+    `Ești agentul personal de călătorii NextTravelAI. Răspunzi ÎNTOTDEAUNA în limba ${LANGUAGE_NAMES[lang]}, ` +
     'prietenos, cald și concis (2-5 propoziții de obicei). Pui întrebări clarificatoare când e util, ' +
     'recomanzi destinații, construiești itinerare pe zile, sugerezi hoteluri, restaurante, activități, ' +
     'estimezi bugetul și explici pe scurt de ce alegi fiecare recomandare. ' +
@@ -50,14 +62,15 @@ export async function sendToAgent(
   userText: string,
   history: ChatMessage[],
   prefs: TravelPreferences,
+  lang: Language = 'ro',
 ): Promise<ChatMessage> {
   if (isLiveAiConfigured()) {
     try {
-      return await callLiveProvider(userText, history, prefs);
+      return await callLiveProvider(userText, history, prefs, lang);
     } catch (err) {
       // Dacă apelul real eșuează, degradăm elegant la modul demo.
       console.warn('[NextTravelAI] Apel AI live eșuat, se folosește modul demo:', err);
-      const reply = generateDemoReply(userText, prefs);
+      const reply = generateDemoReply(userText, prefs, lang);
       return makeMessage('assistant', reply.content, {
         suggestions: reply.suggestions,
         recommendations: reply.recommendations,
@@ -67,7 +80,7 @@ export async function sendToAgent(
 
   // Mod DEMO — mică întârziere pentru senzația de „gândire".
   await delay(500 + Math.random() * 400);
-  const reply = generateDemoReply(userText, prefs);
+  const reply = generateDemoReply(userText, prefs, lang);
   return makeMessage('assistant', reply.content, {
     suggestions: reply.suggestions,
     recommendations: reply.recommendations,
@@ -85,6 +98,7 @@ async function callLiveProvider(
   userText: string,
   history: ChatMessage[],
   prefs: TravelPreferences,
+  lang: Language,
 ): Promise<ChatMessage> {
   const { apiKey, model } = getAiConfig();
 
@@ -109,7 +123,7 @@ async function callLiveProvider(
     body: JSON.stringify({
       model,
       max_tokens: 1024,
-      system: buildSystemPrompt(prefs),
+      system: buildSystemPrompt(prefs, lang),
       messages: mapped,
     }),
   });
@@ -126,7 +140,7 @@ async function callLiveProvider(
     .join('\n')
     .trim();
 
-  return makeMessage('assistant', textOut || 'Îmi pare rău, nu am putut genera un răspuns.');
+  return makeMessage('assistant', textOut || NO_RESPONSE_MESSAGE[lang]);
 }
 
 function delay(ms: number): Promise<void> {

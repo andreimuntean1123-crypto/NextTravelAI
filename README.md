@@ -26,7 +26,9 @@ Este pregătită să fie conectată ușor la servicii reale (AI, zboruri, hotelu
   **listă de bagaje** interactivă, **prognoză meteo**, **galerie foto**.
 - **Cont utilizator** — profil, preferințe, itinerare, favorite, istoricul conversațiilor, bugete
   salvate și notificări.
-- **Mod luminos / întunecat**, **schimbare limbă** (RO / EN) și **monedă** (EUR / RON / USD / GBP).
+- **Mod luminos / întunecat**, **schimbare limbă** (RO / EN / RU — traducere completă a
+  interfeței, a conținutului destinațiilor, hotelurilor și agentului AI, nu doar a meniului)
+  și **monedă** (EUR / RON / USD / GBP).
 - **Persistență locală** completă prin `localStorage` — nimic nu se trimite în afară în modul demo.
 
 ---

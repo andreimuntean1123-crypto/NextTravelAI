@@ -1,4 +1,5 @@
-import type { Currency } from '@/types';
+import type { Currency, Language } from '@/types';
+import { translate } from '@/i18n/translations';
 
 // Rate demonstrative față de EUR (bază). Ușor de înlocuit cu un API de curs.
 export const currencyRates: Record<Currency, number> = {
@@ -39,10 +40,10 @@ export function formatDuration(hours: number): string {
   return m ? `${h}h ${m}m` : `${h}h`;
 }
 
-export function pluralDays(days: number): string {
-  return days === 1 ? '1 zi' : `${days} zile`;
+export function pluralDays(days: number, lang: Language = 'ro'): string {
+  return `${days} ${translate(lang, days === 1 ? 'common.day' : 'common.days')}`;
 }
 
-export function pluralPeople(n: number): string {
-  return n === 1 ? '1 persoană' : `${n} persoane`;
+export function pluralPeople(n: number, lang: Language = 'ro'): string {
+  return `${n} ${translate(lang, 'common.people')}`;
 }

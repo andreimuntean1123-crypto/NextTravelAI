@@ -2,14 +2,16 @@ import { useMemo, useState } from 'react';
 import { Luggage, Check } from 'lucide-react';
 import { destinations } from '@/data/destinations';
 import { generatePackingList } from '@/lib/packing';
+import { useApp } from '@/context/AppContext';
 
 export function PackingListTool() {
+  const { t, tf, language } = useApp();
   const [destId, setDestId] = useState(destinations[0].id);
   const [days, setDays] = useState(7);
   const [checked, setChecked] = useState<Set<string>>(new Set());
 
   const dest = destinations.find((d) => d.id === destId)!;
-  const list = useMemo(() => generatePackingList(dest, days), [dest, days]);
+  const list = useMemo(() => generatePackingList(dest, days, language), [dest, days, language]);
   const total = list.reduce((n, c) => n + c.items.length, 0);
   const done = checked.size;
 
@@ -28,16 +30,16 @@ export function PackingListTool() {
           <Luggage size={22} />
         </span>
         <div>
-          <h3 className="text-xl font-semibold">Listă de bagaje</h3>
+          <h3 className="text-xl font-semibold">{t('packing.title')}</h3>
           <p className="text-sm text-navy-500 dark:text-sand-200/70">
-            {done}/{total} pregătite
+            {tf('packing.readyCount', { done, total })}
           </p>
         </div>
       </div>
 
       <div className="mb-5 grid gap-3 sm:grid-cols-2">
         <label className="text-sm">
-          <span className="mb-1 block font-medium">Destinație</span>
+          <span className="mb-1 block font-medium">{t('packing.destination')}</span>
           <select value={destId} onChange={(e) => setDestId(e.target.value)} className="input-field py-2">
             {destinations.map((d) => (
               <option key={d.id} value={d.id}>
@@ -47,7 +49,7 @@ export function PackingListTool() {
           </select>
         </label>
         <label className="text-sm">
-          <span className="mb-1 block font-medium">Număr de zile: {days}</span>
+          <span className="mb-1 block font-medium">{tf('packing.daysCount', { n: days })}</span>
           <input
             type="range"
             min={1}

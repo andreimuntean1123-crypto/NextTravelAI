@@ -7,9 +7,11 @@ import { hotels } from '@/data/hotels';
 import { cheapestRoomPrice } from '@/lib/hotelsService';
 import { DestinationCard } from '@/components/destinations/DestinationCard';
 import { formatMoney } from '@/lib/format';
+import { countryLabel } from '@/i18n/countries';
+import { localizeHotel } from '@/i18n/hotelContent';
 
 export function Favorites() {
-  const { favorites, savedHotels, compareList, currency, toggleFavorite, toggleHotel } = useApp();
+  const { favorites, savedHotels, compareList, currency, toggleFavorite, toggleHotel, t, tf, language } = useApp();
 
   const favDestinations = destinations.filter((d) => favorites.includes(d.id));
   const favCities = cities.filter((c) => favorites.includes(c.id));
@@ -21,16 +23,14 @@ export function Favorites() {
     <div className="container-page py-10">
       <div className="mb-8 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold">Favorite</h1>
+          <h1 className="text-3xl font-bold">{t('favorites.title')}</h1>
           <p className="mt-1 text-navy-500 dark:text-sand-200/70">
-            {total
-              ? `${total} elemente salvate (destinații, orașe, hoteluri).`
-              : 'Salvează destinațiile, orașele și hotelurile care îți plac.'}
+            {total ? tf('favorites.subtitleFilled', { n: total }) : t('favorites.subtitleEmpty')}
           </p>
         </div>
         {compareList.length > 0 && (
           <Link to="/compara" className="btn-outline px-4 py-2.5 text-sm">
-            <Scale size={16} /> Compară ({compareList.length})
+            <Scale size={16} /> {t('favorites.compare')} ({compareList.length})
           </Link>
         )}
       </div>
@@ -38,16 +38,16 @@ export function Favorites() {
       {total === 0 ? (
         <div className="card-surface flex flex-col items-center justify-center py-20 text-center">
           <Heart size={48} className="mb-4 text-navy-300" />
-          <h3 className="text-xl font-semibold">Nimic la favorite încă</h3>
+          <h3 className="text-xl font-semibold">{t('favorites.empty.title')}</h3>
           <p className="mt-2 max-w-sm text-navy-500 dark:text-sand-200/70">
-            Apasă pe inima de pe orice destinație, oraș sau hotel ca să îl adaugi aici.
+            {t('favorites.empty.text')}
           </p>
           <div className="mt-6 flex flex-wrap justify-center gap-3">
             <Link to="/orase" className="btn-primary px-5 py-2.5 text-sm">
-              <Compass size={16} /> Explorează orașe
+              <Compass size={16} /> {t('favorites.empty.exploreCities')}
             </Link>
             <Link to="/hoteluri" className="btn-outline px-5 py-2.5 text-sm">
-              <BedDouble size={16} /> Vezi hoteluri
+              <BedDouble size={16} /> {t('favorites.empty.viewHotels')}
             </Link>
           </div>
         </div>
@@ -56,7 +56,7 @@ export function Favorites() {
           {/* Destinații */}
           {favDestinations.length > 0 && (
             <section>
-              <h2 className="mb-4 text-xl font-semibold">Destinații ({favDestinations.length})</h2>
+              <h2 className="mb-4 text-xl font-semibold">{t('favorites.destinationsTitle')} ({favDestinations.length})</h2>
               <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {favDestinations.map((d) => (
                   <DestinationCard key={d.id} destination={d} />
@@ -68,7 +68,7 @@ export function Favorites() {
           {/* Orașe */}
           {favCities.length > 0 && (
             <section>
-              <h2 className="mb-4 text-xl font-semibold">Orașe ({favCities.length})</h2>
+              <h2 className="mb-4 text-xl font-semibold">{t('favorites.citiesTitle')} ({favCities.length})</h2>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {favCities.map((c) => (
                   <div key={c.id} className="group card-surface overflow-hidden">
@@ -78,18 +78,18 @@ export function Favorites() {
                       <div className="absolute bottom-2 left-3 text-white">
                         <h3 className="font-display text-lg font-semibold">{c.name}</h3>
                         <p className="flex items-center gap-1 text-xs text-sand-100/90">
-                          <MapPin size={11} /> {c.country}
+                          <MapPin size={11} /> {countryLabel(language, c.country)}
                         </p>
                       </div>
                     </Link>
                     <div className="flex items-center justify-between p-3">
                       <Link to={`/oras/${c.id}`} className="text-sm font-medium text-turquoise-600 dark:text-turquoise-300">
-                        Vezi hoteluri
+                        {t('favorites.viewHotelsIn')}
                       </Link>
                       <button
                         onClick={() => toggleFavorite(c.id, `${c.name}, ${c.country}`)}
                         className="grid h-8 w-8 place-items-center rounded-full hover:bg-navy-100 dark:hover:bg-navy-800"
-                        aria-label="Elimină de la favorite"
+                        aria-label={t('favorites.removeFavorite')}
                       >
                         <Heart size={16} className="fill-red-500 text-red-500" />
                       </button>
@@ -103,9 +103,11 @@ export function Favorites() {
           {/* Hoteluri */}
           {favHotels.length > 0 && (
             <section>
-              <h2 className="mb-4 text-xl font-semibold">Hoteluri salvate ({favHotels.length})</h2>
+              <h2 className="mb-4 text-xl font-semibold">{t('favorites.hotelsTitle')} ({favHotels.length})</h2>
               <div className="space-y-3">
-                {favHotels.map((h) => (
+                {favHotels.map((raw) => {
+                  const h = localizeHotel(raw, language);
+                  return (
                   <div key={h.id} className="card-surface flex items-center gap-4 p-4">
                     <img src={h.image} alt={h.name} className="h-16 w-20 rounded-xl object-cover" />
                     <div className="min-w-0 flex-1">
@@ -120,17 +122,18 @@ export function Favorites() {
                       <p className="text-lg font-bold text-turquoise-600 dark:text-turquoise-300">
                         {formatMoney(cheapestRoomPrice(h), currency)}
                       </p>
-                      <p className="text-xs text-navy-400">/ noapte</p>
+                      <p className="text-xs text-navy-400">{t('common.perNight')}</p>
                     </div>
                     <button
                       onClick={() => toggleHotel(h.id, h.name)}
                       className="grid h-9 w-9 place-items-center rounded-full hover:bg-navy-100 dark:hover:bg-navy-800"
-                      aria-label="Elimină hotelul"
+                      aria-label={t('favorites.removeHotel')}
                     >
                       <Heart size={17} className="fill-red-500 text-red-500" />
                     </button>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </section>
           )}

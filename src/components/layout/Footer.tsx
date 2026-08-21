@@ -1,8 +1,11 @@
 import { Link } from 'react-router-dom';
 import { Sparkles, Facebook, Instagram, Twitter, Youtube, Mail } from 'lucide-react';
 import { externalApisStatus } from '@/lib/aiService';
+import { useApp } from '@/context/AppContext';
+import type { TranslationKey } from '@/i18n/translations';
 
 export function Footer() {
+  const { t } = useApp();
   const apis = externalApisStatus();
   const year = new Date().getFullYear();
 
@@ -19,8 +22,7 @@ export function Footer() {
             </span>
           </Link>
           <p className="mt-4 max-w-xs text-sm text-navy-500 dark:text-sand-200/70">
-            Agentul tău personal de călătorii cu inteligență artificială. Descoperă, planifică și
-            savurează vacanța perfectă — creată special pentru tine.
+            {t('footer.tagline')}
           </p>
           <div className="mt-5 flex gap-2">
             {[Facebook, Instagram, Twitter, Youtube].map((Icon, i) => (
@@ -28,7 +30,7 @@ export function Footer() {
                 key={i}
                 href="#"
                 onClick={(e) => e.preventDefault()}
-                aria-label="Rețea socială"
+                aria-label={t('footer.socialLabel')}
                 className="grid h-9 w-9 place-items-center rounded-full bg-navy-50 text-navy-600 transition hover:bg-turquoise-500 hover:text-navy-950 dark:bg-navy-800 dark:text-sand-200"
               >
                 <Icon size={16} />
@@ -38,29 +40,29 @@ export function Footer() {
         </div>
 
         <FooterCol
-          title="Explorează"
+          title={t('footer.explore')}
           links={[
-            { label: 'Orașe populare', to: '/orase' },
-            { label: 'Hoteluri', to: '/hoteluri' },
-            { label: 'Planifică o călătorie', to: '/planifica' },
-            { label: 'Itinerariile mele', to: '/itinerariile-mele' },
-            { label: 'Favorite', to: '/favorite' },
-            { label: 'Compară destinații', to: '/compara' },
+            { label: t('footer.exploreCities'), to: '/orase' },
+            { label: t('footer.exploreHotels'), to: '/hoteluri' },
+            { label: t('footer.explorePlan'), to: '/planifica' },
+            { label: t('footer.exploreItineraries'), to: '/itinerariile-mele' },
+            { label: t('footer.exploreFavorites'), to: '/favorite' },
+            { label: t('footer.exploreCompare'), to: '/compara' },
           ]}
         />
         <FooterCol
-          title="Companie"
+          title={t('footer.company')}
           links={[
-            { label: 'Despre noi', to: '/despre' },
-            { label: 'Contact', to: '/contact' },
-            { label: 'Contul meu', to: '/cont' },
+            { label: t('footer.companyAbout'), to: '/despre' },
+            { label: t('footer.companyContact'), to: '/contact' },
+            { label: t('footer.companyAccount'), to: '/cont' },
           ]}
         />
 
         <div>
-          <h4 className="font-display text-base font-semibold">Newsletter</h4>
+          <h4 className="font-display text-base font-semibold">{t('footer.newsletterTitle')}</h4>
           <p className="mt-3 text-sm text-navy-500 dark:text-sand-200/70">
-            Oferte și inspirație de călătorie, direct în inbox.
+            {t('footer.newsletterText')}
           </p>
           <form
             onSubmit={(e) => e.preventDefault()}
@@ -71,7 +73,7 @@ export function Footer() {
               <input
                 type="email"
                 required
-                placeholder="email@exemplu.ro"
+                placeholder={t('newsletter.placeholder' as TranslationKey)}
                 className="input-field pl-9 py-2 text-sm"
               />
             </div>
@@ -82,12 +84,12 @@ export function Footer() {
 
       <div className="border-t border-navy-100 dark:border-navy-800">
         <div className="container-page flex flex-col items-center justify-between gap-3 py-5 text-xs text-navy-400 sm:flex-row">
-          <p>© {year} NextTravelAI. Toate drepturile rezervate. Date demonstrative.</p>
+          <p>© {year} NextTravelAI. {t('footer.rights')}</p>
           <p className="flex items-center gap-2">
             <span
               className={`h-2 w-2 rounded-full ${apis.ai ? 'bg-turquoise-500' : 'bg-gold-400'}`}
             />
-            Agent AI: {apis.ai ? 'conectat la API' : 'mod demonstrativ'}
+            {apis.ai ? t('footer.aiConnected') : t('footer.aiDemo')}
           </p>
         </div>
       </div>

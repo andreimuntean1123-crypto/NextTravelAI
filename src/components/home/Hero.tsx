@@ -34,7 +34,7 @@ export function Hero({ onPlanClick }: HeroProps) {
       <div className="absolute inset-0">
         <img
           src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=2000&q=80"
-          alt="Plajă tropicală spectaculoasă"
+          alt={t('hero.imgAlt')}
           className="h-full w-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-navy-950/70 via-navy-900/60 to-navy-950/85" />
@@ -43,7 +43,7 @@ export function Hero({ onPlanClick }: HeroProps) {
       <div className="container-page relative py-20 sm:py-28 lg:py-32">
         <div className="mx-auto max-w-3xl text-center text-white animate-slide-up">
           <span className="chip mx-auto mb-6 border border-white/20 bg-white/10 text-sand-100 backdrop-blur">
-            <Sparkles size={14} className="text-gold-400" /> Planificare inteligentă cu AI
+            <Sparkles size={14} className="text-gold-400" /> {t('hero.badge')}
           </span>
           <h1 className="font-display text-4xl font-bold leading-tight drop-shadow-lg sm:text-5xl lg:text-6xl">
             {t('hero.title')}
@@ -74,7 +74,7 @@ export function Hero({ onPlanClick }: HeroProps) {
                 list="dest-list"
                 value={dest}
                 onChange={(e) => setDest(e.target.value)}
-                placeholder="Oriunde..."
+                placeholder={t('search.destPlaceholder')}
                 className="w-full bg-transparent text-sm outline-none placeholder:text-navy-400"
               />
               <datalist id="dest-list">
@@ -125,13 +125,13 @@ export function Hero({ onPlanClick }: HeroProps) {
                 onChange={(e) => setType(e.target.value)}
                 className="w-full bg-transparent text-sm outline-none dark:[&>option]:bg-navy-900"
               >
-                <option value="">Toate</option>
-                <option value="plaja">Plajă</option>
-                <option value="munte">Munte</option>
-                <option value="city-break">City-break</option>
-                <option value="natura">Natură</option>
-                <option value="romantica">Romantică</option>
-                <option value="familie">Familie</option>
+                <option value="">{t('search.typeAll')}</option>
+                <option value="plaja">{t('search.typeBeach')}</option>
+                <option value="munte">{t('search.typeMountain')}</option>
+                <option value="city-break">{t('search.typeCityBreak')}</option>
+                <option value="natura">{t('search.typeNature')}</option>
+                <option value="romantica">{t('search.typeRomantic')}</option>
+                <option value="familie">{t('search.typeFamily')}</option>
               </select>
             </Field>
           </div>

@@ -5,16 +5,17 @@ import { getDestinationById } from '@/data/destinations';
 import { useApp } from '@/context/AppContext';
 import { formatMoney } from '@/lib/format';
 import { SectionHeading } from '@/components/ui/SectionHeading';
+import type { TranslationKey } from '@/i18n/translations';
 
 export function OffersSection() {
-  const { currency } = useApp();
+  const { currency, t } = useApp();
 
   return (
     <section className="container-page py-14">
       <SectionHeading
-        eyebrow="Prețuri limitate"
-        title="Oferte speciale"
-        subtitle="Reduceri selectate de agentul nostru pentru cea mai bună valoare."
+        eyebrow={t('section.offersEyebrow')}
+        title={t('section.offers')}
+        subtitle={t('section.offersSubtitle')}
         linkTo="/orase"
       />
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
@@ -35,13 +36,13 @@ export function OffersSection() {
                   className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
                 />
                 <span className="absolute left-3 top-3 rounded-full bg-gold-500 px-3 py-1 text-xs font-bold text-navy-950">
-                  {offer.badge}
+                  {t(offer.badge as TranslationKey)}
                 </span>
               </div>
               <div className="p-4">
-                <h3 className="font-semibold">{offer.title}</h3>
+                <h3 className="font-semibold">{t(offer.title as TranslationKey)}</h3>
                 <p className="mt-1 flex items-center gap-1 text-xs text-navy-400">
-                  <Clock size={12} /> {offer.nights} nopți
+                  <Clock size={12} /> {offer.nights} {t('section.offersNights')}
                 </p>
                 <div className="mt-3 flex items-end justify-between">
                   <div>

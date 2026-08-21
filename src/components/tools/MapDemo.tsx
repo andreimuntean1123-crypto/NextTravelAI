@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { MapPin, Navigation } from 'lucide-react';
 import { destinations } from '@/data/destinations';
+import { useApp } from '@/context/AppContext';
+import { localizeDestination } from '@/i18n/destinationContent';
 import type { Destination } from '@/types';
 
 // Poziții demonstrative pe o hartă stilizată a lumii (procente).
@@ -18,6 +20,7 @@ const positions: Record<string, { x: number; y: number }> = {
 };
 
 export function MapDemo() {
+  const { t, language } = useApp();
   const [active, setActive] = useState<Destination | null>(null);
 
   return (
@@ -25,9 +28,9 @@ export function MapDemo() {
       <div className="flex items-center justify-between border-b border-navy-100 p-4 dark:border-navy-800">
         <div className="flex items-center gap-2">
           <Navigation size={18} className="text-turquoise-500" />
-          <h3 className="font-semibold">Hartă interactivă</h3>
+          <h3 className="font-semibold">{t('map.title')}</h3>
         </div>
-        <span className="text-xs text-navy-400">demonstrativ • gata de Google Maps</span>
+        <span className="text-xs text-navy-400">{t('map.demoNote')}</span>
       </div>
 
       <div className="relative aspect-[2/1] bg-gradient-to-b from-navy-800 to-navy-900">
@@ -77,17 +80,17 @@ export function MapDemo() {
             <div className="min-w-0 flex-1">
               <p className="font-semibold">{active.name}</p>
               <p className="truncate text-xs text-navy-500 dark:text-sand-200/70">
-                {active.country} • {active.region}
+                {localizeDestination(active, language).country} • {localizeDestination(active, language).region}
               </p>
             </div>
             <a href={`/destinatie/${active.id}`} className="btn-primary px-3 py-1.5 text-xs">
-              Vezi
+              {t('map.view')}
             </a>
           </div>
         )}
       </div>
       <p className="p-3 text-center text-xs text-navy-400">
-        Apasă pe un marcaj pentru detalii. Integrarea reală se face cu VITE_MAPS_API_KEY.
+        {t('map.footerNote')}
       </p>
     </div>
   );

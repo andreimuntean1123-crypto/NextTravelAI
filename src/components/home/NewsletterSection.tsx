@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { Mail, Check, Send } from 'lucide-react';
 import { saveStorage, STORAGE_KEYS } from '@/lib/storage';
+import { useApp } from '@/context/AppContext';
 
 export function NewsletterSection() {
+  const { t } = useApp();
   const [email, setEmail] = useState('');
   const [done, setDone] = useState(false);
 
@@ -23,15 +25,15 @@ export function NewsletterSection() {
             <Mail size={26} className="text-gold-400" />
           </span>
           <h2 className="font-display text-2xl font-bold sm:text-3xl">
-            Inspirație de călătorie în inbox-ul tău
+            {t('newsletter.title')}
           </h2>
           <p className="mt-3 text-sand-100/80">
-            Primește oferte exclusive, ghiduri de destinații și idei de itinerare. Fără spam.
+            {t('newsletter.subtitle')}
           </p>
 
           {done ? (
             <div className="mx-auto mt-7 flex max-w-md items-center justify-center gap-2 rounded-full bg-turquoise-500 px-6 py-3.5 font-medium text-navy-950 animate-scale-in">
-              <Check size={18} /> Te-ai abonat cu succes! Îți mulțumim.
+              <Check size={18} /> {t('newsletter.success')}
             </div>
           ) : (
             <form onSubmit={submit} className="mx-auto mt-7 flex max-w-md flex-col gap-2 sm:flex-row">
@@ -40,11 +42,11 @@ export function NewsletterSection() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="email@exemplu.ro"
+                placeholder={t('newsletter.placeholder')}
                 className="flex-1 rounded-full border border-white/20 bg-white/10 px-5 py-3.5 text-white placeholder:text-sand-100/60 outline-none focus:border-turquoise-300 backdrop-blur"
               />
               <button className="btn-primary px-6 py-3.5">
-                <Send size={16} /> Abonează-te
+                <Send size={16} /> {t('newsletter.cta')}
               </button>
             </form>
           )}

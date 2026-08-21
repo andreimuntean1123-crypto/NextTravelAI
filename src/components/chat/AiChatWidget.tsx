@@ -4,7 +4,8 @@ import { MessageCircle, X, Send, Sparkles, Bot, Trash2, Mic, Volume2, VolumeX, K
 import { useApp } from '@/context/AppContext';
 import { sendToAgent, isLiveAiConfigured } from '@/lib/aiService';
 import { ApiKeyForm } from '@/components/settings/ApiKeyForm';
-import { WELCOME_MESSAGE, DEFAULT_SUGGESTIONS, makeMessage } from '@/lib/aiChat';
+import { welcomeMessageFor, defaultSuggestionsFor, makeMessage } from '@/lib/aiChat';
+import { localizeDestination } from '@/i18n/destinationContent';
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
 import {
   speak,
@@ -19,7 +20,7 @@ export function AiChatWidget() {
   const { preferences, saveConversation, t, language } = useApp();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
-    makeMessage('assistant', WELCOME_MESSAGE, { suggestions: DEFAULT_SUGGESTIONS }),
+    makeMessage('assistant', welcomeMessageFor(language), { suggestions: defaultSuggestionsFor(language) }),
   ]);
   const [input, setInput] = useState('');
   const [typing, setTyping] = useState(false);
@@ -58,7 +59,7 @@ export function AiChatWidget() {
     const firstUser = msgs.find((m) => m.role === 'user');
     saveConversation({
       id: convIdRef.current,
-      title: firstUser ? firstUser.content.slice(0, 40) : 'Conversație nouă',
+      title: firstUser ? firstUser.content.slice(0, 40) : t('chat.newConversationTitle'),
       messages: msgs,
       createdAt: Date.now(),
     });
@@ -73,7 +74,7 @@ export function AiChatWidget() {
     setInput('');
     setTyping(true);
 
-    const reply = await sendToAgent(trimmed, next, preferences);
+    const reply = await sendToAgent(trimmed, next, preferences, language);
     const finalMsgs = [...next, reply];
     setMessages(finalMsgs);
     setTyping(false);
@@ -83,7 +84,7 @@ export function AiChatWidget() {
 
   const reset = () => {
     convIdRef.current = `conv-${Date.now()}`;
-    setMessages([makeMessage('assistant', WELCOME_MESSAGE, { suggestions: DEFAULT_SUGGESTIONS })]);
+    setMessages([makeMessage('assistant', welcomeMessageFor(language), { suggestions: defaultSuggestionsFor(language) })]);
   };
 
   return (
@@ -96,7 +97,7 @@ export function AiChatWidget() {
             setPulse(false);
           }}
           className="group fixed bottom-5 right-5 z-50 flex items-center gap-2 rounded-full bg-gradient-to-br from-turquoise-400 to-turquoise-600 px-4 py-3.5 text-navy-950 shadow-soft-lg transition hover:scale-105 sm:bottom-6 sm:right-6"
-          aria-label="Deschide agentul AI"
+          aria-label={t('chat.openLabel')}
         >
           <span className="relative">
             <MessageCircle size={24} />
@@ -104,7 +105,7 @@ export function AiChatWidget() {
               <span className="absolute -right-1 -top-1 h-3 w-3 animate-ping rounded-full bg-gold-400" />
             )}
           </span>
-          <span className="hidden text-sm font-semibold sm:inline">Agent AI</span>
+          <span className="hidden text-sm font-semibold sm:inline">{t('chat.label')}</span>
         </button>
       )}
 
@@ -121,15 +122,15 @@ export function AiChatWidget() {
                 <p className="text-sm font-semibold">{t('chat.title')}</p>
                 <p className="flex items-center gap-1 text-xs text-sand-100/80">
                   <span className={`h-1.5 w-1.5 rounded-full ${liveAi ? 'bg-turquoise-400' : 'bg-gold-400'}`} />
-                  {liveAi ? 'Conectat la Claude' : 'Mod demonstrativ • online'}
+                  {liveAi ? t('chat.connectedClaude') : t('chat.demoMode')}
                 </p>
               </div>
             </div>
             <div className="flex items-center gap-1">
               <button
                 onClick={() => setShowSettings((s) => !s)}
-                aria-label="Cheie API / setări agent"
-                title="Conectează-ți cheia API"
+                aria-label={t('chat.apiKeySettings')}
+                title={t('chat.connectApiKey')}
                 className={`grid h-8 w-8 place-items-center rounded-full hover:bg-white/10 ${liveAi ? 'text-turquoise-300' : 'text-gold-400'}`}
               >
                 <KeyRound size={16} />
@@ -140,8 +141,8 @@ export function AiChatWidget() {
                     setVoiceOut((v) => !v);
                     cancelSpeech();
                   }}
-                  aria-label={voiceOut ? 'Oprește vocea agentului' : 'Pornește vocea agentului'}
-                  title={voiceOut ? 'Vocea agentului: pornită' : 'Vocea agentului: oprită'}
+                  aria-label={voiceOut ? t('chat.voiceOff') : t('chat.voiceOn')}
+                  title={voiceOut ? t('chat.voiceStatusOn') : t('chat.voiceStatusOff')}
                   className={`grid h-8 w-8 place-items-center rounded-full hover:bg-white/10 ${voiceOut ? 'text-turquoise-300' : ''}`}
                 >
                   {voiceOut ? <Volume2 size={17} /> : <VolumeX size={17} />}
@@ -149,15 +150,15 @@ export function AiChatWidget() {
               )}
               <button
                 onClick={reset}
-                aria-label="Conversație nouă"
-                title="Conversație nouă"
+                aria-label={t('chat.newConversation')}
+                title={t('chat.newConversation')}
                 className="grid h-8 w-8 place-items-center rounded-full hover:bg-white/10"
               >
                 <Trash2 size={16} />
               </button>
               <button
                 onClick={() => setOpen(false)}
-                aria-label="Închide"
+                aria-label={t('chat.close')}
                 className="grid h-8 w-8 place-items-center rounded-full hover:bg-white/10"
               >
                 <X size={18} />
@@ -192,9 +193,9 @@ export function AiChatWidget() {
                   <span key={d} className="h-3 w-1 animate-pulse rounded-full bg-turquoise-500" style={{ animationDelay: `${d}ms` }} />
                 ))}
               </span>
-              <span className="flex-1 truncate">{interim || 'Ascult... vorbește acum'}</span>
+              <span className="flex-1 truncate">{interim || t('chat.listening')}</span>
               <button onClick={stop} className="text-xs font-semibold underline">
-                Stop
+                {t('chat.stop')}
               </button>
             </div>
           )}
@@ -211,8 +212,8 @@ export function AiChatWidget() {
               <button
                 type="button"
                 onClick={toggleMic}
-                aria-label={listening ? 'Oprește microfonul' : 'Vorbește'}
-                title={listening ? 'Oprește microfonul' : 'Vorbește cu agentul'}
+                aria-label={listening ? t('chat.stopMic') : t('chat.speak')}
+                title={listening ? t('chat.stopMic') : t('chat.speak')}
                 className={`grid h-11 w-11 shrink-0 place-items-center rounded-full transition ${
                   listening
                     ? 'animate-pulse bg-red-500 text-white'
@@ -225,14 +226,14 @@ export function AiChatWidget() {
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder={listening ? 'Ascult...' : t('chat.placeholder')}
+              placeholder={listening ? t('chat.listeningShort') : t('chat.placeholder')}
               className="input-field flex-1 py-2.5 text-sm"
             />
             <button
               type="submit"
               disabled={!input.trim() || typing}
               className="btn-primary h-11 w-11 shrink-0 p-0"
-              aria-label="Trimite"
+              aria-label={t('chat.send')}
             >
               <Send size={18} />
             </button>
@@ -250,6 +251,7 @@ function MessageBubble({
   message: ChatMessage;
   onSuggestion: (text: string) => void;
 }) {
+  const { t, language } = useApp();
   const isUser = message.role === 'user';
   return (
     <div className={`flex flex-col gap-2 ${isUser ? 'items-end' : 'items-start'}`}>
@@ -266,26 +268,29 @@ function MessageBubble({
       {/* Recomandări inline */}
       {message.recommendations && message.recommendations.length > 0 && (
         <div className="w-full space-y-2">
-          {message.recommendations.map((r) => (
+          {message.recommendations.map((r) => {
+            const d = localizeDestination(r.destination, language);
+            return (
             <Link
-              key={r.destination.id}
-              to={`/destinatie/${r.destination.id}`}
+              key={d.id}
+              to={`/destinatie/${d.id}`}
               className="flex items-center gap-3 rounded-xl border border-navy-100 bg-white p-2 transition hover:border-turquoise-400 dark:border-navy-700 dark:bg-navy-800"
             >
               <img
-                src={r.destination.image}
-                alt={r.destination.name}
+                src={d.image}
+                alt={d.name}
                 className="h-12 w-12 rounded-lg object-cover"
               />
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold">{r.destination.name}</p>
+                <p className="truncate text-sm font-semibold">{d.name}</p>
                 <p className="text-xs text-navy-500 dark:text-sand-200/70">
-                  {r.destination.country} • {r.matchScore}% potrivire
+                  {d.country} • {r.matchScore}% {t('chat.matchPercent')}
                 </p>
               </div>
               <span className="text-xs font-bold text-turquoise-600">~{r.estimatedPrice}€</span>
             </Link>
-          ))}
+            );
+          })}
         </div>
       )}
 

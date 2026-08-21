@@ -4,15 +4,16 @@ import { Wallet, Save, Check } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { formatMoney } from '@/lib/format';
 import type { BudgetBreakdown } from '@/types';
+import type { TranslationKey } from '@/i18n/translations';
 
-const CATEGORIES: { key: keyof BudgetBreakdown; label: string; color: string }[] = [
-  { key: 'transport', label: 'Transport', color: '#243a5e' },
-  { key: 'accommodation', label: 'Cazare', color: '#06c3ae' },
-  { key: 'food', label: 'Mâncare', color: '#d4a94a' },
-  { key: 'activities', label: 'Activități', color: '#4f6a99' },
-  { key: 'localTransport', label: 'Transport local', color: '#52f5dc' },
-  { key: 'shopping', label: 'Cumpărături', color: '#e6c374' },
-  { key: 'emergency', label: 'Fond urgențe', color: '#7d94ba' },
+const CATEGORY_KEYS: { key: keyof BudgetBreakdown; labelKey: TranslationKey; color: string }[] = [
+  { key: 'transport', labelKey: 'budget.category.transport', color: '#243a5e' },
+  { key: 'accommodation', labelKey: 'budget.category.accommodation', color: '#06c3ae' },
+  { key: 'food', labelKey: 'budget.category.food', color: '#d4a94a' },
+  { key: 'activities', labelKey: 'budget.category.activities', color: '#4f6a99' },
+  { key: 'localTransport', labelKey: 'budget.category.localTransport', color: '#52f5dc' },
+  { key: 'shopping', labelKey: 'budget.category.shopping', color: '#e6c374' },
+  { key: 'emergency', labelKey: 'budget.category.emergency', color: '#7d94ba' },
 ];
 
 interface Props {
@@ -32,8 +33,10 @@ const emptyBudget: BudgetBreakdown = {
   emergency: 180,
 };
 
-export function BudgetCalculator({ initial, days = 7, people = 2, label = 'Buget vacanță' }: Props) {
-  const { currency, saveBudget } = useApp();
+export function BudgetCalculator({ initial, days = 7, people = 2, label }: Props) {
+  const { currency, saveBudget, t, tf } = useApp();
+  const CATEGORIES = CATEGORY_KEYS.map((c) => ({ ...c, label: t(c.labelKey) }));
+  const resolvedLabel = label ?? t('budget.defaultLabel');
   const [budget, setBudget] = useState<BudgetBreakdown>(initial ?? emptyBudget);
   const [totalBudget, setTotalBudget] = useState<number>(
     Object.values(initial ?? emptyBudget).reduce((a, b) => a + b, 0) + 500,
@@ -59,7 +62,7 @@ export function BudgetCalculator({ initial, days = 7, people = 2, label = 'Buget
   const handleSave = () => {
     saveBudget({
       id: `budget-${Date.now()}`,
-      label,
+      label: resolvedLabel,
       total,
       people,
       days,
@@ -77,9 +80,9 @@ export function BudgetCalculator({ initial, days = 7, people = 2, label = 'Buget
           <Wallet size={22} />
         </span>
         <div>
-          <h3 className="text-xl font-semibold">Calculator de buget</h3>
+          <h3 className="text-xl font-semibold">{t('budget.title')}</h3>
           <p className="text-sm text-navy-500 dark:text-sand-200/70">
-            {days} zile • {people} persoane
+            {tf('budget.subtitle', { days, people })}
           </p>
         </div>
       </div>
@@ -89,7 +92,7 @@ export function BudgetCalculator({ initial, days = 7, people = 2, label = 'Buget
         <div className="space-y-4">
           <div className="rounded-xl bg-navy-50 p-4 dark:bg-navy-800">
             <label className="mb-2 flex items-center justify-between text-sm font-medium">
-              <span>Buget total disponibil</span>
+              <span>{t('budget.totalAvailable')}</span>
               <span className="text-turquoise-600 dark:text-turquoise-300">
                 {formatMoney(totalBudget, currency)}
               </span>
@@ -154,17 +157,17 @@ export function BudgetCalculator({ initial, days = 7, people = 2, label = 'Buget
               </PieChart>
             </ResponsiveContainer>
             <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-xs text-navy-400">Total</span>
+              <span className="text-xs text-navy-400">{t('budget.total')}</span>
               <span className="text-xl font-bold">{formatMoney(total, currency)}</span>
             </div>
           </div>
 
           <div className="mt-4 grid grid-cols-2 gap-3">
-            <Stat label="Cost total" value={formatMoney(total, currency)} />
-            <Stat label="Per persoană" value={formatMoney(perPerson, currency)} />
-            <Stat label="Pe zi" value={formatMoney(perDay, currency)} />
+            <Stat label={t('budget.costTotal')} value={formatMoney(total, currency)} />
+            <Stat label={t('budget.perPerson')} value={formatMoney(perPerson, currency)} />
+            <Stat label={t('budget.perDay')} value={formatMoney(perDay, currency)} />
             <Stat
-              label="Rămas"
+              label={t('budget.remaining')}
               value={formatMoney(remaining, currency)}
               tone={remaining < 0 ? 'danger' : 'good'}
             />
@@ -173,11 +176,11 @@ export function BudgetCalculator({ initial, days = 7, people = 2, label = 'Buget
           <button onClick={handleSave} className="btn-navy mt-4 w-full py-2.5 text-sm">
             {saved ? (
               <>
-                <Check size={16} /> Buget salvat!
+                <Check size={16} /> {t('budget.saved')}
               </>
             ) : (
               <>
-                <Save size={16} /> Salvează bugetul
+                <Save size={16} /> {t('budget.save')}
               </>
             )}
           </button>

@@ -91,7 +91,7 @@ export function Navbar() {
                 setLanguage(next);
               }}
               className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-navy-600 dark:text-sand-200"
-              aria-label="Schimbă limba"
+              aria-label={t('nav.changeLanguage')}
               title="RO / EN / RU"
             >
               <Globe size={14} /> {language.toUpperCase()}
@@ -102,7 +102,7 @@ export function Navbar() {
           <select
             value={currency}
             onChange={(e) => setCurrency(e.target.value as Currency)}
-            aria-label="Schimbă moneda"
+            aria-label={t('nav.changeCurrency')}
             className="hidden rounded-full border border-navy-200 bg-transparent px-2 py-1.5 text-xs font-semibold text-navy-600 dark:border-navy-700 dark:text-sand-200 sm:block"
           >
             <option value="EUR">EUR</option>
@@ -121,7 +121,7 @@ export function Navbar() {
 
           <Link
             to="/favorite"
-            aria-label="Favorite"
+            aria-label={t('nav.favorites')}
             className="relative hidden h-9 w-9 place-items-center rounded-full text-navy-600 hover:bg-navy-100 dark:text-sand-200 dark:hover:bg-navy-800 sm:grid"
           >
             <Heart size={18} />
@@ -135,7 +135,7 @@ export function Navbar() {
           {user ? (
             <Link
               to="/cont"
-              aria-label="Contul meu"
+              aria-label={t('nav.myAccount')}
               title={user.name}
               className="relative hidden h-9 w-9 place-items-center overflow-hidden rounded-full border-2 border-turquoise-400 sm:grid"
             >
@@ -153,7 +153,7 @@ export function Navbar() {
           ) : (
             <button
               onClick={() => setAuthOpen(true)}
-              aria-label="Conectează-te"
+              aria-label={t('nav.login')}
               className="relative hidden h-9 w-9 place-items-center rounded-full text-navy-600 hover:bg-navy-100 dark:text-sand-200 dark:hover:bg-navy-800 sm:grid"
             >
               <User size={18} />
@@ -177,7 +177,7 @@ export function Navbar() {
           <button
             onClick={() => setOpen((o) => !o)}
             className="grid h-9 w-9 place-items-center rounded-full text-navy-700 hover:bg-navy-100 dark:text-sand-100 dark:hover:bg-navy-800 xl:hidden"
-            aria-label="Meniu"
+            aria-label={t('nav.menu')}
           >
             {open ? <X size={22} /> : <Menu size={22} />}
           </button>

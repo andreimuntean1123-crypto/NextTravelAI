@@ -5,14 +5,14 @@ import type { Destination, Pace } from '@/types';
 
 // Generează un itinerar din datele curente și navighează la pagina lui.
 export function useCreateItinerary() {
-  const { saveItinerary, preferences } = useApp();
+  const { saveItinerary, preferences, language } = useApp();
   const navigate = useNavigate();
 
   return (dest: Destination, overrideDays?: number) => {
     const days = overrideDays ?? Number(preferences.days) ?? dest.recommendedDays;
     const people = Number(preferences.people) || 2;
     const pace = (preferences.pace as Pace) || 'echilibrat';
-    const itinerary = generateItinerary(dest, days || dest.recommendedDays, people, pace);
+    const itinerary = generateItinerary(dest, days || dest.recommendedDays, people, pace, language);
     saveItinerary(itinerary);
     navigate(`/itinerar/${itinerary.id}`);
   };

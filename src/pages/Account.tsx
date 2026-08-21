@@ -26,27 +26,30 @@ import { hotels } from '@/data/hotels';
 import { cheapestRoomPrice } from '@/lib/hotelsService';
 import { itineraryTotalCost } from '@/lib/itinerary';
 import { formatMoney } from '@/lib/format';
-import { tripTypeLabels } from '@/data/content';
+import { tripTypeLabel } from '@/i18n/labels';
+import { localizeHotel } from '@/i18n/hotelContent';
+import { localeOf, type TranslationKey } from '@/i18n/translations';
 
 type Tab = 'profil' | 'agent-ai' | 'activitate' | 'preferinte' | 'itinerare' | 'favorite' | 'hoteluri' | 'conversatii' | 'bugete' | 'notificari';
 
-const tabs: { id: Tab; label: string; icon: typeof User }[] = [
-  { id: 'profil', label: 'Profil', icon: User },
-  { id: 'agent-ai', label: 'Agent AI (cheie API)', icon: KeyRound },
-  { id: 'activitate', label: 'Activitate recentă', icon: ActivityIcon },
-  { id: 'preferinte', label: 'Preferințe', icon: Settings },
-  { id: 'itinerare', label: 'Itinerarele mele', icon: Map },
-  { id: 'favorite', label: 'Favorite', icon: Heart },
-  { id: 'hoteluri', label: 'Hoteluri salvate', icon: BedDouble },
-  { id: 'conversatii', label: 'Conversații AI', icon: MessageSquare },
-  { id: 'bugete', label: 'Bugete', icon: Wallet },
-  { id: 'notificari', label: 'Notificări', icon: Bell },
-];
-
 export function Account() {
   const app = useApp();
+  const { t } = app;
   const [tab, setTab] = useState<Tab>('profil');
   const unread = app.notifications.filter((n) => !n.read).length;
+
+  const tabs: { id: Tab; label: string; icon: typeof User }[] = [
+    { id: 'profil', label: t('account.tab.profile'), icon: User },
+    { id: 'agent-ai', label: t('account.tab.aiAgent'), icon: KeyRound },
+    { id: 'activitate', label: t('account.tab.activity'), icon: ActivityIcon },
+    { id: 'preferinte', label: t('account.tab.preferences'), icon: Settings },
+    { id: 'itinerare', label: t('account.tab.itineraries'), icon: Map },
+    { id: 'favorite', label: t('account.tab.favorites'), icon: Heart },
+    { id: 'hoteluri', label: t('account.tab.hotels'), icon: BedDouble },
+    { id: 'conversatii', label: t('account.tab.conversations'), icon: MessageSquare },
+    { id: 'bugete', label: t('account.tab.budgets'), icon: Wallet },
+    { id: 'notificari', label: t('account.tab.notifications'), icon: Bell },
+  ];
 
   return (
     <div className="container-page py-10">
@@ -62,8 +65,10 @@ export function Account() {
           <h1 className="text-2xl font-bold">{app.user?.name ?? app.profile.name}</h1>
           <p className="text-sm text-navy-500 dark:text-sand-200/70">
             {app.user
-              ? app.user.email || (app.user.provider === 'google' ? 'Cont Google' : 'Cont demo')
-              : `Membru din ${new Date(app.profile.memberSince).toLocaleDateString('ro-RO', { month: 'long', year: 'numeric' })}`}
+              ? app.user.email || (app.user.provider === 'google' ? t('account.googleAccount') : t('account.demoAccount'))
+              : app.tf('account.memberSince', {
+                  date: new Date(app.profile.memberSince).toLocaleDateString(localeOf(app.language), { month: 'long', year: 'numeric' }),
+                })}
           </p>
         </div>
       </div>
@@ -99,9 +104,9 @@ export function Account() {
           {tab === 'agent-ai' && (
             <div className="space-y-4">
               <div>
-                <h2 className="text-lg font-semibold">Agentul AI</h2>
+                <h2 className="text-lg font-semibold">{t('account.aiAgentTitle')}</h2>
                 <p className="text-sm text-navy-500 dark:text-sand-200/70">
-                  Conectează cheia ta Claude ca agentul să te înțeleagă și să vorbească liber cu tine.
+                  {t('account.aiAgentText')}
                 </p>
               </div>
               <ApiKeyForm />
@@ -122,7 +127,7 @@ export function Account() {
 }
 
 function ProfileTab() {
-  const { profile, updateProfile, theme, toggleTheme, language, setLanguage, currency, setCurrency, user, signOut } = useApp();
+  const { profile, updateProfile, theme, toggleTheme, language, setLanguage, currency, setCurrency, user, signOut, t } = useApp();
   const [saved, setSaved] = useState(false);
   const [form, setForm] = useState(profile);
   const [authOpen, setAuthOpen] = useState(false);
@@ -142,56 +147,56 @@ function ProfileTab() {
             <LogIn size={20} />
           </span>
           <div>
-            <p className="font-semibold">{user ? 'Ești conectat' : 'Nu ești conectat'}</p>
+            <p className="font-semibold">{user ? t('account.loggedIn') : t('account.notLoggedIn')}</p>
             <p className="text-sm text-navy-500 dark:text-sand-200/70">
               {user
                 ? `${user.name}${user.email ? ` · ${user.email}` : ''}`
-                : 'Conectează-te prin Google sau email ca să îți salvezi datele.'}
+                : t('account.notLoggedInText')}
             </p>
           </div>
         </div>
         {user ? (
           <button onClick={signOut} className="btn-outline px-4 py-2.5 text-sm text-red-500">
-            <LogOut size={16} /> Deconectează-te
+            <LogOut size={16} /> {t('account.logout')}
           </button>
         ) : (
           <button onClick={() => setAuthOpen(true)} className="btn-primary px-4 py-2.5 text-sm">
-            <LogIn size={16} /> Conectează-te
+            <LogIn size={16} /> {t('account.login')}
           </button>
         )}
         <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
       </div>
 
       <div className="card-surface p-6">
-        <h2 className="mb-4 text-lg font-semibold">Detalii profil</h2>
+        <h2 className="mb-4 text-lg font-semibold">{t('account.profileDetails')}</h2>
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="text-sm">
-            <span className="mb-1 block font-medium">Nume</span>
+            <span className="mb-1 block font-medium">{t('account.name')}</span>
             <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="input-field" />
           </label>
           <label className="text-sm">
-            <span className="mb-1 block font-medium">Email</span>
-            <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="input-field" placeholder="email@exemplu.ro" />
+            <span className="mb-1 block font-medium">{t('account.email')}</span>
+            <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="input-field" placeholder={t('contact.formEmailPlaceholder')} />
           </label>
           <label className="text-sm">
-            <span className="mb-1 block font-medium">Oraș de plecare</span>
+            <span className="mb-1 block font-medium">{t('account.homeCity')}</span>
             <input value={form.homeCity} onChange={(e) => setForm({ ...form, homeCity: e.target.value })} className="input-field" />
           </label>
         </div>
         <button onClick={save} className="btn-primary mt-4 px-5 py-2.5 text-sm">
-          {saved ? (<><Check size={16} /> Salvat!</>) : 'Salvează modificările'}
+          {saved ? (<><Check size={16} /> {t('account.saved')}</>) : t('account.saveChanges')}
         </button>
       </div>
 
       <div className="card-surface p-6">
-        <h2 className="mb-4 text-lg font-semibold">Setări aplicație</h2>
+        <h2 className="mb-4 text-lg font-semibold">{t('account.appSettings')}</h2>
         <div className="space-y-4">
-          <SettingRow label="Temă">
+          <SettingRow label={t('account.themeLabel')}>
             <button onClick={toggleTheme} className="btn-outline px-4 py-2 text-sm">
-              {theme === 'dark' ? '🌙 Întunecată' : '☀️ Luminoasă'}
+              {theme === 'dark' ? `🌙 ${t('theme.dark')}` : `☀️ ${t('theme.light')}`}
             </button>
           </SettingRow>
-          <SettingRow label="Limbă">
+          <SettingRow label={t('account.languageLabel')}>
             <div className="flex gap-2">
               {(['ro', 'en', 'ru'] as const).map((l) => (
                 <button
@@ -204,7 +209,7 @@ function ProfileTab() {
               ))}
             </div>
           </SettingRow>
-          <SettingRow label="Monedă">
+          <SettingRow label={t('account.currencyLabel')}>
             <select value={currency} onChange={(e) => setCurrency(e.target.value as never)} className="input-field w-auto py-2">
               <option value="EUR">EUR €</option>
               <option value="RON">RON lei</option>
@@ -218,9 +223,9 @@ function ProfileTab() {
       <div className="card-surface flex items-center gap-4 border-dashed p-6">
         <LogIn size={22} className="text-navy-400" />
         <div className="flex-1">
-          <p className="font-medium">Cont în cloud (în curând)</p>
+          <p className="font-medium">{t('account.cloudTitle')}</p>
           <p className="text-sm text-navy-500 dark:text-sand-200/70">
-            Momentan totul se salvează local, pe dispozitivul tău. Sincronizarea în cloud va veni în curând.
+            {t('account.cloudText')}
           </p>
         </div>
       </div>
@@ -240,23 +245,23 @@ const ACTIVITY_META: Record<string, { icon: typeof Heart; color: string }> = {
 };
 
 function ActivityTab() {
-  const { activity, clearActivity } = useApp();
+  const { activity, clearActivity, t, language } = useApp();
 
   if (!activity.length)
     return (
       <EmptyState
         icon={<ActivityIcon size={44} />}
-        title="Nicio activitate încă"
-        text="Aici apar acțiunile tale recente (favorite, itinerare, conversații cu AI, bugete) — cu ziua și ora."
+        title={t('account.noActivity.title')}
+        text={t('account.noActivity.text')}
       />
     );
 
   return (
     <div>
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-lg font-semibold">Activitate recentă</h2>
+        <h2 className="text-lg font-semibold">{t('account.activityTitle')}</h2>
         <button onClick={clearActivity} className="flex items-center gap-1 text-sm text-red-500">
-          <Trash2 size={14} /> Golește istoricul
+          <Trash2 size={14} /> {t('account.clearHistory')}
         </button>
       </div>
       <ol className="relative space-y-3 border-l border-navy-100 pl-5 dark:border-navy-800">
@@ -270,7 +275,7 @@ function ActivityTab() {
               </span>
               <div className="card-surface p-3">
                 <p className="text-sm">{a.text}</p>
-                <p className="mt-0.5 text-xs text-navy-400">{formatDateTime(a.date)}</p>
+                <p className="mt-0.5 text-xs text-navy-400">{formatDateTime(a.date, localeOf(language))}</p>
               </div>
             </li>
           );
@@ -281,68 +286,68 @@ function ActivityTab() {
 }
 
 function PreferencesTab() {
-  const { preferences } = useApp();
+  const { preferences, t, language } = useApp();
   const entries = Object.entries(preferences).filter(([, v]) => v !== undefined && v !== '');
 
   if (entries.length === 0) {
     return (
       <EmptyState
         icon={<Settings size={44} />}
-        title="Nicio preferință salvată"
-        text="Completează chestionarul AI ca să îți reținem preferințele de călătorie."
-        cta={{ to: '/planifica', label: 'Completează chestionarul' }}
+        title={t('account.noPrefs.title')}
+        text={t('account.noPrefs.text')}
+        cta={{ to: '/planifica', label: t('account.noPrefs.cta') }}
       />
     );
   }
 
-  const labelMap: Record<string, string> = {
-    origin: 'Oraș de plecare',
-    destinationWish: 'Destinație dorită',
-    period: 'Perioadă',
-    days: 'Zile',
-    people: 'Persoane',
-    budget: 'Buget (€)',
-    tripTypes: 'Tipuri de vacanță',
-    climate: 'Climă',
-    transport: 'Transport',
-    accommodation: 'Cazare',
-    stars: 'Stele',
-    pace: 'Ritm',
-    activities: 'Activități',
+  const labelMap: Record<string, TranslationKey> = {
+    origin: 'account.pref.origin',
+    destinationWish: 'account.pref.destinationWish',
+    period: 'account.pref.period',
+    days: 'account.pref.days',
+    people: 'account.pref.people',
+    budget: 'account.pref.budget',
+    tripTypes: 'account.pref.tripTypes',
+    climate: 'account.pref.climate',
+    transport: 'account.pref.transport',
+    accommodation: 'account.pref.accommodation',
+    stars: 'account.pref.stars',
+    pace: 'account.pref.pace',
+    activities: 'account.pref.activities',
   };
 
   const fmt = (v: unknown): string => {
-    if (Array.isArray(v)) return v.map((x) => tripTypeLabels[x as string] ?? x).join(', ');
+    if (Array.isArray(v)) return v.map((x) => tripTypeLabel(language, x as string) ?? x).join(', ');
     return String(v);
   };
 
   return (
     <div className="card-surface p-6">
-      <h2 className="mb-4 text-lg font-semibold">Preferințele tale de călătorie</h2>
+      <h2 className="mb-4 text-lg font-semibold">{t('account.prefsTitle')}</h2>
       <dl className="grid gap-3 sm:grid-cols-2">
         {entries.map(([k, v]) => (
           <div key={k} className="rounded-xl border border-navy-100 p-3 dark:border-navy-800">
-            <dt className="text-xs text-navy-400">{labelMap[k] ?? k}</dt>
+            <dt className="text-xs text-navy-400">{labelMap[k] ? t(labelMap[k]) : k}</dt>
             <dd className="mt-0.5 font-medium">{fmt(v)}</dd>
           </div>
         ))}
       </dl>
       <Link to="/planifica" className="btn-outline mt-4 inline-flex px-5 py-2.5 text-sm">
-        <Sparkles size={15} /> Actualizează preferințele
+        <Sparkles size={15} /> {t('account.updatePrefs')}
       </Link>
     </div>
   );
 }
 
 function ItinerariesTab() {
-  const { itineraries, currency, deleteItinerary } = useApp();
+  const { itineraries, currency, deleteItinerary, t } = useApp();
   if (!itineraries.length)
     return (
       <EmptyState
         icon={<Map size={44} />}
-        title="Niciun itinerar salvat"
-        text="Creează un itinerar dintr-o destinație și îl regăsești aici."
-        cta={{ to: '/orase', label: 'Descoperă destinații' }}
+        title={t('account.noItineraries.title')}
+        text={t('account.noItineraries.text')}
+        cta={{ to: '/orase', label: t('account.noItineraries.cta') }}
       />
     );
   return (
@@ -353,10 +358,10 @@ function ItinerariesTab() {
           <div className="min-w-0 flex-1">
             <p className="font-semibold">{it.destinationName}</p>
             <p className="text-sm text-navy-500 dark:text-sand-200/70">
-              {it.totalDays} zile • {it.people} pers. • {formatMoney(itineraryTotalCost(it), currency)}
+              {it.totalDays} {t('common.days')} • {it.people} {t('account.pref.people').toLowerCase()} • {formatMoney(itineraryTotalCost(it), currency)}
             </p>
           </div>
-          <Link to={`/itinerar/${it.id}`} className="btn-primary px-4 py-2 text-sm">Deschide</Link>
+          <Link to={`/itinerar/${it.id}`} className="btn-primary px-4 py-2 text-sm">{t('account.open')}</Link>
           <button onClick={() => deleteItinerary(it.id)} className="btn-outline px-3 py-2 text-sm text-red-500">
             <Trash2 size={15} />
           </button>
@@ -367,15 +372,15 @@ function ItinerariesTab() {
 }
 
 function FavoritesTab() {
-  const { favorites } = useApp();
+  const { favorites, t } = useApp();
   const list = destinations.filter((d) => favorites.includes(d.id));
   if (!list.length)
     return (
       <EmptyState
         icon={<Heart size={44} />}
-        title="Nicio destinație favorită"
-        text="Salvează destinațiile care îți plac apăsând pe inimă."
-        cta={{ to: '/orase', label: 'Descoperă destinații' }}
+        title={t('account.noFavDest.title')}
+        text={t('account.noFavDest.text')}
+        cta={{ to: '/orase', label: t('destDetail.discover') }}
       />
     );
   return (
@@ -394,20 +399,21 @@ function FavoritesTab() {
 }
 
 function SavedHotelsTab() {
-  const { savedHotels, currency, toggleHotel } = useApp();
+  const { savedHotels, currency, toggleHotel, t, language } = useApp();
   const list = hotels.filter((h) => savedHotels.includes(h.id));
   if (!list.length)
     return (
       <EmptyState
         icon={<BedDouble size={44} />}
-        title="Niciun hotel salvat"
-        text="Apasă pe inima de pe orice hotel ca să îl salvezi aici."
-        cta={{ to: '/hoteluri', label: 'Vezi hoteluri' }}
+        title={t('account.noSavedHotels.title')}
+        text={t('account.noSavedHotels.text')}
+        cta={{ to: '/hoteluri', label: t('favorites.empty.viewHotels') }}
       />
     );
   return (
     <div className="space-y-3">
-      {list.map((h) => {
+      {list.map((raw) => {
+        const h = localizeHotel(raw, language);
         const dest = destinations.find((d) => d.id === h.destinationId);
         return (
           <div key={h.id} className="card-surface flex items-center gap-4 p-4">
@@ -424,10 +430,10 @@ function SavedHotelsTab() {
               <p className="text-lg font-bold text-turquoise-600 dark:text-turquoise-300">
                 {formatMoney(cheapestRoomPrice(h), currency)}
               </p>
-              <p className="text-xs text-navy-400">/ noapte</p>
+              <p className="text-xs text-navy-400">{t('common.perNight')}</p>
             </div>
             <Link to={`/hoteluri?dest=${h.destinationId}`} className="btn-primary px-4 py-2 text-sm">
-              Vezi
+              {t('account.view')}
             </Link>
             <button onClick={() => toggleHotel(h.id, h.name)} className="btn-outline px-3 py-2 text-sm text-red-500">
               <Trash2 size={15} />
@@ -440,13 +446,13 @@ function SavedHotelsTab() {
 }
 
 function ConversationsTab() {
-  const { conversations, deleteConversation } = useApp();
+  const { conversations, deleteConversation, t, language } = useApp();
   if (!conversations.length)
     return (
       <EmptyState
         icon={<MessageSquare size={44} />}
-        title="Nicio conversație salvată"
-        text="Discută cu agentul AI din butonul plutitor și conversațiile apar aici."
+        title={t('account.noConversations.title')}
+        text={t('account.noConversations.text')}
       />
     );
   return (
@@ -457,10 +463,10 @@ function ConversationsTab() {
             <div className="min-w-0">
               <p className="truncate font-medium">{c.title}</p>
               <p className="text-xs text-navy-400">
-                {new Date(c.createdAt).toLocaleString('ro-RO')} • {c.messages.length} mesaje
+                {new Date(c.createdAt).toLocaleString(localeOf(language))} • {c.messages.length} {t('account.messagesCount')}
               </p>
             </div>
-            <button onClick={() => deleteConversation(c.id)} className="text-red-500" aria-label="Șterge">
+            <button onClick={() => deleteConversation(c.id)} className="text-red-500" aria-label={t('account.deleteAria')}>
               <Trash2 size={16} />
             </button>
           </div>
@@ -474,14 +480,14 @@ function ConversationsTab() {
 }
 
 function BudgetsTab() {
-  const { budgets, currency, deleteBudget } = useApp();
+  const { budgets, currency, deleteBudget, t, language } = useApp();
   if (!budgets.length)
     return (
       <EmptyState
         icon={<Wallet size={44} />}
-        title="Niciun buget salvat"
-        text="Folosește calculatorul de buget din pagina Planifică și salvează-ți estimările."
-        cta={{ to: '/planifica', label: 'Deschide calculatorul' }}
+        title={t('account.noBudgets.title')}
+        text={t('account.noBudgets.text')}
+        cta={{ to: '/planifica', label: t('account.openCalculator') }}
       />
     );
   return (
@@ -491,14 +497,14 @@ function BudgetsTab() {
           <div>
             <p className="font-semibold">{b.label}</p>
             <p className="text-sm text-navy-500 dark:text-sand-200/70">
-              {b.days} zile • {b.people} pers. • {new Date(b.createdAt).toLocaleDateString('ro-RO')}
+              {b.days} {t('common.days')} • {b.people} {t('account.pref.people').toLowerCase()} • {new Date(b.createdAt).toLocaleDateString(localeOf(language))}
             </p>
           </div>
           <div className="flex items-center gap-3">
             <span className="text-lg font-bold text-turquoise-600 dark:text-turquoise-300">
               {formatMoney(b.total, currency)}
             </span>
-            <button onClick={() => deleteBudget(b.id)} className="text-red-500" aria-label="Șterge">
+            <button onClick={() => deleteBudget(b.id)} className="text-red-500" aria-label={t('account.deleteAria')}>
               <Trash2 size={16} />
             </button>
           </div>
@@ -509,12 +515,12 @@ function BudgetsTab() {
 }
 
 function NotificationsTab() {
-  const { notifications, markNotificationRead, markAllRead } = useApp();
+  const { notifications, markNotificationRead, markAllRead, t, language } = useApp();
   return (
     <div>
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-lg font-semibold">Notificări</h2>
-        <button onClick={markAllRead} className="text-sm text-turquoise-600">Marchează toate ca citite</button>
+        <h2 className="text-lg font-semibold">{t('account.notificationsTitle')}</h2>
+        <button onClick={markAllRead} className="text-sm text-turquoise-600">{t('account.markAllRead')}</button>
       </div>
       <div className="space-y-3">
         {notifications.map((n) => (
@@ -527,7 +533,7 @@ function NotificationsTab() {
             <div>
               <p className="font-medium">{n.title}</p>
               <p className="text-sm text-navy-500 dark:text-sand-200/70">{n.body}</p>
-              <p className="mt-1 text-xs text-navy-400">{new Date(n.date).toLocaleString('ro-RO')}</p>
+              <p className="mt-1 text-xs text-navy-400">{new Date(n.date).toLocaleString(localeOf(language))}</p>
             </div>
           </button>
         ))}

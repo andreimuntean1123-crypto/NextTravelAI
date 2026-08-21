@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
+import { useApp } from '@/context/AppContext';
 
 interface Props {
   eyebrow?: string;
@@ -11,6 +12,7 @@ interface Props {
 }
 
 export function SectionHeading({ eyebrow, title, subtitle, linkTo, linkLabel, center }: Props) {
+  const { t } = useApp();
   return (
     <div className={`mb-8 flex flex-wrap items-end justify-between gap-4 ${center ? 'flex-col text-center' : ''}`}>
       <div className={center ? 'mx-auto max-w-2xl' : 'max-w-2xl'}>
@@ -27,7 +29,7 @@ export function SectionHeading({ eyebrow, title, subtitle, linkTo, linkLabel, ce
           to={linkTo}
           className="group flex items-center gap-1 text-sm font-semibold text-turquoise-600 dark:text-turquoise-400"
         >
-          {linkLabel ?? 'Vezi toate'}
+          {linkLabel ?? t('common.seeAll')}
           <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
         </Link>
       )}

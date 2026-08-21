@@ -1,5 +1,6 @@
 import { useEffect, type ReactNode } from 'react';
 import { X } from 'lucide-react';
+import { useApp } from '@/context/AppContext';
 
 interface ModalProps {
   open: boolean;
@@ -10,6 +11,7 @@ interface ModalProps {
 }
 
 export function Modal({ open, onClose, children, title, size = 'lg' }: ModalProps) {
+  const { t } = useApp();
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
@@ -45,7 +47,7 @@ export function Modal({ open, onClose, children, title, size = 'lg' }: ModalProp
       >
         <button
           onClick={onClose}
-          aria-label="Închide"
+          aria-label={t('common.close')}
           className="absolute right-4 top-4 rounded-full p-2 text-navy-500 hover:bg-navy-100 dark:hover:bg-navy-800 transition"
         >
           <X size={20} />

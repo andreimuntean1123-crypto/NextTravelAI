@@ -4,14 +4,20 @@ import { Search, SlidersHorizontal, X, Hotel as HotelIcon, BedDouble } from 'luc
 import { searchHotels, allAmenities, type HotelSort } from '@/lib/hotelsService';
 import { HotelCard } from '@/components/hotels/HotelCard';
 import { HotelDetailModal } from '@/components/hotels/HotelDetailModal';
-import { propertyTypeLabels, boardLabels, totalHotels } from '@/data/hotels';
+import { totalHotels } from '@/data/hotels';
+import { propertyTypeLabel, boardLabel } from '@/i18n/labels';
+import { translateAmenity } from '@/i18n/hotelContent';
 import { destinations } from '@/data/destinations';
+import { useApp } from '@/context/AppContext';
 import type { BoardType, BookingHotel, PropertyType } from '@/types';
 
-const propertyTypeKeys = Object.keys(propertyTypeLabels) as PropertyType[];
-const boardKeys = Object.keys(boardLabels) as BoardType[];
+const propertyTypeKeys: PropertyType[] = [
+  'hotel', 'resort', 'apartament', 'vila', 'pensiune', 'hostel', 'cabana', 'boutique', 'aparthotel', 'bed-breakfast',
+];
+const boardKeys: BoardType[] = ['fara-masa', 'mic-dejun', 'demipensiune', 'all-inclusive'];
 
 export function Hotels() {
+  const { t, tf, language } = useApp();
   const [params] = useSearchParams();
   const [selected, setSelected] = useState<BookingHotel | null>(null);
 
@@ -77,10 +83,10 @@ export function Hotels() {
     <div className="container-page py-10">
       <div className="mb-6">
         <h1 className="flex items-center gap-2 text-3xl font-bold">
-          <HotelIcon className="text-turquoise-500" /> Hoteluri
+          <HotelIcon className="text-turquoise-500" /> {t('hotels.title')}
         </h1>
         <p className="mt-1 text-navy-500 dark:text-sand-200/70">
-          {results.length} din {totalHotels} proprietăți • fiecare cu prețul și camerele sale
+          {tf('hotels.subtitle', { shown: results.length, total: totalHotels })}
         </p>
       </div>
 
@@ -91,12 +97,12 @@ export function Hotels() {
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Caută hotel sau cartier..."
+            placeholder={t('hotels.searchPlaceholder')}
             className="input-field pl-11"
           />
         </div>
         <select value={destinationId} onChange={(e) => setDestinationId(e.target.value)} className="input-field w-auto">
-          <option value="">Toate destinațiile</option>
+          <option value="">{t('hotels.allDestinations')}</option>
           {destinations.map((d) => (
             <option key={d.id} value={d.id}>
               {d.name}, {d.country}
@@ -108,21 +114,21 @@ export function Hotels() {
           <select value={nights} onChange={(e) => setNights(Number(e.target.value))} className="input-field w-auto">
             {[1, 2, 3, 4, 5, 7, 10, 14].map((n) => (
               <option key={n} value={n}>
-                {n} {n === 1 ? 'noapte' : 'nopți'}
+                {n} {n === 1 ? t('hotels.night') : t('hotels.nights')}
               </option>
             ))}
           </select>
         </label>
         <select value={sort} onChange={(e) => setSort(e.target.value as HotelSort)} className="input-field w-auto">
-          <option value="recommended">Recomandate</option>
-          <option value="price-asc">Preț crescător</option>
-          <option value="price-desc">Preț descrescător</option>
-          <option value="rating">Scor recenzii</option>
-          <option value="stars">Stele</option>
-          <option value="distance">Distanță de centru</option>
+          <option value="recommended">{t('hotels.sortRecommended')}</option>
+          <option value="price-asc">{t('hotels.sortPriceAsc')}</option>
+          <option value="price-desc">{t('hotels.sortPriceDesc')}</option>
+          <option value="rating">{t('hotels.sortRating')}</option>
+          <option value="stars">{t('hotels.sortStars')}</option>
+          <option value="distance">{t('hotels.sortDistance')}</option>
         </select>
         <button onClick={() => setShowFilters((s) => !s)} className="btn-outline px-4 py-2.5 text-sm lg:hidden">
-          <SlidersHorizontal size={16} /> Filtre
+          <SlidersHorizontal size={16} /> {t('hotels.filters')}
           {activeCount > 0 && (
             <span className="grid h-5 w-5 place-items-center rounded-full bg-turquoise-500 text-xs text-navy-950">
               {activeCount}
@@ -136,19 +142,19 @@ export function Hotels() {
         <aside className={`${showFilters ? 'block' : 'hidden'} lg:block`}>
           <div className="card-surface sticky top-20 space-y-5 p-5">
             <div className="flex items-center justify-between">
-              <h3 className="font-semibold">Filtrează</h3>
+              <h3 className="font-semibold">{t('hotels.filterSection')}</h3>
               {activeCount > 0 && (
                 <button onClick={reset} className="flex items-center gap-1 text-xs text-turquoise-600">
-                  <X size={13} /> Resetează
+                  <X size={13} /> {t('common.reset')}
                 </button>
               )}
             </div>
 
-            <Group label={`Preț max / noapte: ${maxPrice}€`}>
+            <Group label={tf('hotels.maxPricePerNight', { price: maxPrice })}>
               <input type="range" min={20} max={800} step={10} value={maxPrice} onChange={(e) => setMaxPrice(Number(e.target.value))} className="w-full accent-turquoise-500" />
             </Group>
 
-            <Group label="Scor recenzii">
+            <Group label={t('hotels.reviewScore')}>
               <div className="flex flex-wrap gap-1.5">
                 {[9, 8, 7].map((s) => (
                   <button
@@ -156,13 +162,13 @@ export function Hotels() {
                     onClick={() => setMinScore(minScore === s ? 0 : s)}
                     className={`chip text-xs ${minScore === s ? 'bg-turquoise-500 text-navy-950' : 'bg-navy-50 dark:bg-navy-800'}`}
                   >
-                    {s}+ {s === 9 ? 'Superb' : s === 8 ? 'Foarte bine' : 'Bine'}
+                    {s}+ {s === 9 ? t('hotels.reviewSuperb') : s === 8 ? t('hotels.reviewVeryGood') : t('hotels.reviewGood')}
                   </button>
                 ))}
               </div>
             </Group>
 
-            <Group label="Stele">
+            <Group label={t('hotels.stars')}>
               <div className="flex gap-1.5">
                 {[5, 4, 3, 2].map((s) => (
                   <button
@@ -176,21 +182,21 @@ export function Hotels() {
               </div>
             </Group>
 
-            <Group label="Tip de proprietate">
+            <Group label={t('hotels.propertyType')}>
               <div className="flex flex-wrap gap-1.5">
-                {propertyTypeKeys.map((t) => (
+                {propertyTypeKeys.map((ty) => (
                   <button
-                    key={t}
-                    onClick={() => toggle(types, t, setTypes)}
-                    className={`chip text-xs ${types.includes(t) ? 'bg-turquoise-500 text-navy-950' : 'bg-navy-50 dark:bg-navy-800'}`}
+                    key={ty}
+                    onClick={() => toggle(types, ty, setTypes)}
+                    className={`chip text-xs ${types.includes(ty) ? 'bg-turquoise-500 text-navy-950' : 'bg-navy-50 dark:bg-navy-800'}`}
                   >
-                    {propertyTypeLabels[t]}
+                    {propertyTypeLabel(language, ty)}
                   </button>
                 ))}
               </div>
             </Group>
 
-            <Group label="Regim de masă">
+            <Group label={t('hotels.boardType')}>
               <div className="flex flex-wrap gap-1.5">
                 {boardKeys.map((b) => (
                   <button
@@ -198,26 +204,26 @@ export function Hotels() {
                     onClick={() => toggle(boards, b, setBoards)}
                     className={`chip text-xs ${boards.includes(b) ? 'bg-turquoise-500 text-navy-950' : 'bg-navy-50 dark:bg-navy-800'}`}
                   >
-                    {boardLabels[b]}
+                    {boardLabel(language, b)}
                   </button>
                 ))}
               </div>
             </Group>
 
-            <Group label="Opțiuni">
+            <Group label={t('hotels.options')}>
               <div className="space-y-2 text-sm">
-                <Toggle label="Anulare gratuită" checked={freeCancellation} onChange={setFreeCancellation} />
-                <Toggle label="Mic dejun inclus" checked={breakfast} onChange={setBreakfast} />
-                <Toggle label="Sustenabil 🌿" checked={sustainable} onChange={setSustainable} />
+                <Toggle label={t('hotels.freeCancellation')} checked={freeCancellation} onChange={setFreeCancellation} />
+                <Toggle label={t('hotels.breakfastIncluded')} checked={breakfast} onChange={setBreakfast} />
+                <Toggle label={t('hotels.sustainable')} checked={sustainable} onChange={setSustainable} />
               </div>
             </Group>
 
-            <Group label="Facilități">
+            <Group label={t('hotels.amenities')}>
               <div className="max-h-44 space-y-1.5 overflow-y-auto pr-1 text-sm">
                 {allAmenities.map((a) => (
                   <Toggle
                     key={a}
-                    label={a}
+                    label={translateAmenity(language, a)}
                     checked={amenities.includes(a)}
                     onChange={() => toggle(amenities, a, setAmenities)}
                   />
@@ -232,12 +238,12 @@ export function Hotels() {
           {results.length === 0 ? (
             <div className="card-surface flex flex-col items-center justify-center py-20 text-center">
               <HotelIcon size={48} className="mb-4 text-navy-300" />
-              <h3 className="text-xl font-semibold">Niciun hotel găsit</h3>
+              <h3 className="text-xl font-semibold">{t('hotels.noneFound.title')}</h3>
               <p className="mt-2 max-w-sm text-navy-500 dark:text-sand-200/70">
-                Niciun rezultat pentru filtrele curente. Încearcă să relaxezi criteriile.
+                {t('hotels.noneFound.text')}
               </p>
               <button onClick={reset} className="btn-primary mt-5 px-5 py-2.5 text-sm">
-                Resetează filtrele
+                {t('common.resetFilters')}
               </button>
             </div>
           ) : (

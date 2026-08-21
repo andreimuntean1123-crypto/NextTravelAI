@@ -11,7 +11,7 @@ import { destinations } from '@/data/destinations';
 
 export function Home() {
   const { open } = useQuestionnaire();
-  const { preferences } = useApp();
+  const { preferences, t } = useApp();
 
   // „Recomandări pentru tine" — dacă există preferințe, sortăm după popularitate/rating.
   const forYouIds = [...destinations]
@@ -31,22 +31,18 @@ export function Home() {
       <Hero onPlanClick={open} />
 
       <CategorySection
-        eyebrow="Cele mai căutate"
-        title="Destinații populare"
-        subtitle="Locurile care cuceresc inimile călătorilor din toată lumea."
+        eyebrow={t('section.popularEyebrow')}
+        title={t('section.popular')}
+        subtitle={t('section.popularSubtitle')}
         ids={popularIds}
       />
 
       <FeaturesSection />
 
       <CategorySection
-        eyebrow={hasPrefs ? 'Pe baza preferințelor tale' : 'Selecția noastră'}
-        title="Recomandări pentru tine"
-        subtitle={
-          hasPrefs
-            ? 'Sugestii adaptate profilului tău de călător.'
-            : 'Completează chestionarul AI pentru recomandări cu adevărat personalizate.'
-        }
+        eyebrow={hasPrefs ? t('section.forYouEyebrowPrefs') : t('section.forYouEyebrowDefault')}
+        title={t('section.forYou')}
+        subtitle={hasPrefs ? t('section.forYouSubtitlePrefs') : t('section.forYouSubtitleDefault')}
         ids={forYouIds}
         tinted
       />
@@ -54,31 +50,31 @@ export function Home() {
       <OffersSection />
 
       <CategorySection
-        eyebrow="Distracție pentru toți"
-        title="Vacanțe pentru familii"
-        subtitle="Destinații sigure și pline de activități pentru cei mici și mari."
+        eyebrow={t('section.familyEyebrow')}
+        title={t('section.family')}
+        subtitle={t('section.familySubtitle')}
         filterTag="familie"
       />
 
       <CategorySection
-        eyebrow="Doar voi doi"
-        title="Escapade romantice"
-        subtitle="Locuri de vis pentru momente de neuitat în doi."
+        eyebrow={t('section.romanticEyebrow')}
+        title={t('section.romantic')}
+        subtitle={t('section.romanticSubtitle')}
         filterTag="romantica"
         tinted
       />
 
       <CategorySection
-        eyebrow="Adrenalină & natură"
-        title="Aventuri în natură"
-        subtitle="Munți, jungle și peisaje care îți taie respirația."
+        eyebrow={t('section.natureEyebrow')}
+        title={t('section.nature')}
+        subtitle={t('section.natureSubtitle')}
         filterTag="natura"
       />
 
       <CategorySection
-        eyebrow="Weekenduri urbane"
-        title="City-break-uri"
-        subtitle="Orașe vibrante, cultură, gastronomie și viață de noapte."
+        eyebrow={t('section.cityEyebrow')}
+        title={t('section.city')}
+        subtitle={t('section.citySubtitle')}
         filterTag="city-break"
         tinted
       />

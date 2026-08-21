@@ -1,7 +1,9 @@
 import { destinations } from '@/data/destinations';
-import { tripTypeLabels, climateLabels } from '@/data/content';
+import { tf } from '@/i18n/translations';
+import { tripTypeLabel, climateLabel } from '@/i18n/labels';
 import type {
   Destination,
+  Language,
   Recommendation,
   TravelPreferences,
   BudgetBreakdown,
@@ -19,7 +21,7 @@ interface ScoreResult {
   cons: string[];
 }
 
-function scoreDestination(dest: Destination, prefs: TravelPreferences): ScoreResult {
+function scoreDestination(dest: Destination, prefs: TravelPreferences, lang: Language): ScoreResult {
   let score = 55; // bază
   const reasons: string[] = [];
   const pros: string[] = [];
@@ -33,11 +35,9 @@ function scoreDestination(dest: Destination, prefs: TravelPreferences): ScoreRes
     score += ratio * 22;
     if (matches.length) {
       reasons.push(
-        `Se potrivește cu preferințele tale pentru ${matches
-          .map((m) => tripTypeLabels[m])
-          .join(', ')}.`,
+        tf(lang, 'rec.matchesPrefs', { types: matches.map((m) => tripTypeLabel(lang, m)).join(', ') }),
       );
-      pros.push(`Excelentă pentru ${tripTypeLabels[matches[0]].toLowerCase()}`);
+      pros.push(tf(lang, 'rec.excellentFor', { type: tripTypeLabel(lang, matches[0]).toLowerCase() }));
     }
   }
 
@@ -45,10 +45,15 @@ function scoreDestination(dest: Destination, prefs: TravelPreferences): ScoreRes
   if (prefs.climate && prefs.climate !== 'indiferent') {
     if (dest.climate === prefs.climate) {
       score += 12;
-      reasons.push(`Are clima ${climateLabels[dest.climate].toLowerCase()} pe care o cauți.`);
+      reasons.push(tf(lang, 'rec.hasClimate', { climate: climateLabel(lang, dest.climate).toLowerCase() }));
     } else {
       score -= 6;
-      cons.push(`Clima e ${climateLabels[dest.climate].toLowerCase()}, nu ${climateLabels[prefs.climate].toLowerCase()}`);
+      cons.push(
+        tf(lang, 'rec.climateMismatch', {
+          climate: climateLabel(lang, dest.climate).toLowerCase(),
+          wanted: climateLabel(lang, prefs.climate).toLowerCase(),
+        }),
+      );
     }
   }
 
@@ -60,14 +65,14 @@ function scoreDestination(dest: Destination, prefs: TravelPreferences): ScoreRes
     const estTotal = estimateTripCost(dest, days, people);
     if (estTotal <= budget) {
       score += 14;
-      reasons.push('Se încadrează confortabil în bugetul tău.');
-      pros.push('Se potrivește bugetului');
+      reasons.push(tf(lang, 'rec.withinBudget', {}));
+      pros.push(tf(lang, 'rec.matchesBudget', {}));
     } else if (estTotal <= budget * 1.2) {
       score += 4;
-      cons.push('Ușor peste buget — se poate optimiza');
+      cons.push(tf(lang, 'rec.slightlyOverBudget', {}));
     } else {
       score -= 10;
-      cons.push('Peste bugetul indicat');
+      cons.push(tf(lang, 'rec.overBudget', {}));
     }
   }
 
@@ -79,7 +84,7 @@ function scoreDestination(dest: Destination, prefs: TravelPreferences): ScoreRes
       score += 6;
     } else {
       score -= 3;
-      cons.push('Necesită alt mijloc de transport');
+      cons.push(tf(lang, 'rec.needsOtherTransport', {}));
     }
   }
 
@@ -88,7 +93,7 @@ function scoreDestination(dest: Destination, prefs: TravelPreferences): ScoreRes
   if (wantStars > 0) {
     const hasStars = dest.hotels.some((h) => h.stars >= wantStars);
     if (hasStars) score += 5;
-    else cons.push(`Opțiuni limitate de ${wantStars} stele`);
+    else cons.push(tf(lang, 'rec.limitedStarOptions', { stars: wantStars }));
   }
 
   // Text liber: destinație dorită
@@ -100,7 +105,7 @@ function scoreDestination(dest: Destination, prefs: TravelPreferences): ScoreRes
       dest.region.toLowerCase().includes(wish)
     ) {
       score += 18;
-      reasons.push('Corespunde direct destinației menționate de tine.');
+      reasons.push(tf(lang, 'rec.matchesWish', {}));
     }
   }
 
@@ -108,7 +113,7 @@ function scoreDestination(dest: Destination, prefs: TravelPreferences): ScoreRes
   const disliked = String(prefs.dislikedDestinations ?? '').toLowerCase();
   if (disliked && (dest.name.toLowerCase().includes(disliked) || dest.country.toLowerCase().includes(disliked))) {
     score -= 25;
-    cons.push('Menționată ca destinație care nu ți-a plăcut');
+    cons.push(tf(lang, 'rec.dislikedMention', {}));
   }
 
   // Bonus rating & popularitate
@@ -122,22 +127,22 @@ function scoreDestination(dest: Destination, prefs: TravelPreferences): ScoreRes
   // Confort vs economie
   if (prefs.saveVsComfort === 'economie' && dest.pricePerDay > 150) {
     score -= 6;
-    cons.push('Destinație mai scumpă pentru un buget de economie');
+    cons.push(tf(lang, 'rec.expensiveForSaver', {}));
   }
   if (prefs.saveVsComfort === 'confort' && dest.pricePerDay > 150) {
     score += 4;
-    pros.push('Opțiuni de lux disponibile');
+    pros.push(tf(lang, 'rec.luxuryAvailable', {}));
   }
 
   // Pro-uri generale
-  if (dest.rating >= 9.2) pros.push('Rating excelent al vizitatorilor');
-  if (dest.pricePerDay <= 90) pros.push('Raport calitate-preț foarte bun');
+  if (dest.rating >= 9.2) pros.push(tf(lang, 'rec.excellentRating', {}));
+  if (dest.pricePerDay <= 90) pros.push(tf(lang, 'rec.greatValue', {}));
 
   // Normalizează
   score = Math.max(35, Math.min(99, Math.round(score)));
 
   if (!reasons.length) {
-    reasons.push('O alegere versatilă, apreciată de majoritatea călătorilor.');
+    reasons.push(tf(lang, 'rec.versatileChoice', {}));
   }
 
   return {
@@ -175,6 +180,7 @@ function flightEstimate(dest: Destination): number {
 export function getRecommendations(
   prefs: TravelPreferences,
   limit = 5,
+  lang: Language = 'ro',
 ): Recommendation[] {
   const days = Number(prefs.days) || 6;
   const people = Number(prefs.people) || 2;
@@ -189,7 +195,7 @@ export function getRecommendations(
 
   return pool
     .map<Recommendation>((dest) => {
-      const { score, reasons, pros, cons } = scoreDestination(dest, prefs);
+      const { score, reasons, pros, cons } = scoreDestination(dest, prefs, lang);
       return {
         destination: dest,
         matchScore: score,

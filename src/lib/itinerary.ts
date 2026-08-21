@@ -1,8 +1,11 @@
+import { tf, translate } from '@/i18n/translations';
+import { slotLabelText } from '@/i18n/labels';
 import type {
   Destination,
   Itinerary,
   ItineraryActivity,
   ItineraryDay,
+  Language,
   Pace,
 } from '@/types';
 
@@ -21,6 +24,7 @@ export function generateItinerary(
   days: number,
   people: number,
   pace: Pace = 'echilibrat',
+  lang: Language = 'ro',
 ): Itinerary {
   const slotsPerDay = paceSlots[pace];
   const attractions = [...dest.attractions];
@@ -48,7 +52,7 @@ export function generateItinerary(
     activities.push({
       id: uid(),
       slot: 'pranz',
-      title: `Prânz la ${lunch.name}`,
+      title: tf(lang, 'itin.lunchAt', { name: lunch.name }),
       type: 'masa',
       durationHours: 1.5,
       cost: lunch.priceLevel * 18 * people,
@@ -73,11 +77,11 @@ export function generateItinerary(
       activities.push({
         id: uid(),
         slot: 'dupa-amiaza',
-        title: 'Timp liber & relaxare',
+        title: translate(lang, 'itin.freeTime'),
         type: 'relaxare',
         durationHours: 2,
         cost: 0,
-        tip: 'Savurează atmosfera în ritmul tău.',
+        tip: translate(lang, 'itin.enjoyPace'),
       });
     }
 
@@ -86,7 +90,7 @@ export function generateItinerary(
     activities.push({
       id: uid(),
       slot: 'seara',
-      title: `Cină la ${dinner.name}`,
+      title: tf(lang, 'itin.dinnerAt', { name: dinner.name }),
       type: 'masa',
       durationHours: 2,
       cost: dinner.priceLevel * 25 * people,
@@ -96,7 +100,7 @@ export function generateItinerary(
 
     itineraryDays.push({
       day: d + 1,
-      title: dayTitle(d, dest),
+      title: dayTitle(d, dest, lang),
       activities,
     });
   }
@@ -115,16 +119,16 @@ export function generateItinerary(
   };
 }
 
-function dayTitle(index: number, dest: Destination): string {
+function dayTitle(index: number, dest: Destination, lang: Language): string {
   const titles = [
-    `Sosire & primele impresii în ${dest.name}`,
-    'Explorare culturală',
-    'Natură & priveliști',
-    'Gastronomie & relaxare',
-    'Aventură',
-    'Locuri ascunse',
-    'Zi liberă & shopping',
-    'Ultima zi & suveniruri',
+    tf(lang, 'itin.day.arrival', { name: dest.name }),
+    translate(lang, 'itin.day.cultural'),
+    translate(lang, 'itin.day.nature'),
+    translate(lang, 'itin.day.food'),
+    translate(lang, 'itin.day.adventure'),
+    translate(lang, 'itin.day.hidden'),
+    translate(lang, 'itin.day.free'),
+    translate(lang, 'itin.day.last'),
   ];
   return titles[index % titles.length];
 }
@@ -134,13 +138,14 @@ export function regenerateDay(
   itinerary: Itinerary,
   dayNumber: number,
   dest: Destination,
+  lang: Language = 'ro',
 ): Itinerary {
-  const fresh = generateItinerary(dest, itinerary.totalDays, itinerary.people, itinerary.pace);
+  const fresh = generateItinerary(dest, itinerary.totalDays, itinerary.people, itinerary.pace, lang);
   const newDay = fresh.days[(dayNumber) % fresh.days.length];
   return {
     ...itinerary,
     days: itinerary.days.map((d) =>
-      d.day === dayNumber ? { ...newDay, day: dayNumber, title: `${d.title} (reînnoit)` } : d,
+      d.day === dayNumber ? { ...newDay, day: dayNumber, title: tf(lang, 'itin.day.renewed', { title: d.title }) } : d,
     ),
   };
 }
@@ -152,35 +157,38 @@ export function itineraryTotalCost(itinerary: Itinerary): number {
   );
 }
 
-export const slotLabels: Record<string, { label: string; icon: string }> = {
-  dimineata: { label: 'Dimineața', icon: '🌅' },
-  pranz: { label: 'Prânz', icon: '🍽️' },
-  'dupa-amiaza': { label: 'După-amiaza', icon: '🌤️' },
-  seara: { label: 'Seara', icon: '🌙' },
-};
+export function slotLabelsFor(lang: Language): Record<string, { label: string; icon: string }> {
+  return {
+    dimineata: { label: slotLabelText(lang, 'dimineata'), icon: '🌅' },
+    pranz: { label: slotLabelText(lang, 'pranz'), icon: '🍽️' },
+    'dupa-amiaza': { label: slotLabelText(lang, 'dupa-amiaza'), icon: '🌤️' },
+    seara: { label: slotLabelText(lang, 'seara'), icon: '🌙' },
+  };
+}
 
 // ─── Itinerar generic pentru un oraș (fără date curate detaliate) ──
 
-const CITY_MORNING = [
-  'Tur al centrului istoric din',
-  'Vizită la muzeul principal din',
-  'Plimbare prin piața centrală din',
-  'Explorarea cartierului vechi din',
-  'Punct panoramic asupra orașului',
-];
-const CITY_AFTERNOON = [
-  'Parcul central și zona verde',
-  'Cartierul artelor și galerii',
-  'Tur de shopping local',
-  'Croazieră / plimbare pe malul apei',
-  'Atracție emblematică a orașului',
-];
+const CITY_MORNING_KEYS = [
+  'itin.cityMorning1',
+  'itin.cityMorning2',
+  'itin.cityMorning3',
+  'itin.cityMorning4',
+  'itin.cityMorning5',
+] as const;
+const CITY_AFTERNOON_KEYS = [
+  'itin.cityAfternoon1',
+  'itin.cityAfternoon2',
+  'itin.cityAfternoon3',
+  'itin.cityAfternoon4',
+  'itin.cityAfternoon5',
+] as const;
 
 export function generateCityItinerary(
   city: { id: string; name: string; country: string; image: string },
   days: number,
   people: number,
   pace: Pace = 'echilibrat',
+  lang: Language = 'ro',
 ): Itinerary {
   const slots = paceSlots[pace];
   const itineraryDays: ItineraryDay[] = [];
@@ -190,57 +198,57 @@ export function generateCityItinerary(
     activities.push({
       id: uid(),
       slot: 'dimineata',
-      title: `${CITY_MORNING[d % CITY_MORNING.length]} ${city.name}`,
+      title: `${translate(lang, CITY_MORNING_KEYS[d % CITY_MORNING_KEYS.length])} ${city.name}`,
       type: 'obiectiv',
       durationHours: 2.5,
       cost: 12 * people,
       distanceKm: Number((1 + (d % 3)).toFixed(1)),
-      tip: 'Pornește devreme pentru a evita aglomerația.',
+      tip: translate(lang, 'itin.tipEarly'),
     });
     activities.push({
       id: uid(),
       slot: 'pranz',
-      title: `Prânz într-un restaurant local din ${city.name}`,
+      title: tf(lang, 'itin.cityLunch', { name: city.name }),
       type: 'masa',
       durationHours: 1.5,
       cost: 18 * people,
       distanceKm: 0.7,
-      tip: 'Încearcă un fel de mâncare tradițional.',
+      tip: translate(lang, 'itin.tipTraditional'),
     });
     if (slots >= 3) {
       activities.push({
         id: uid(),
         slot: 'dupa-amiaza',
-        title: CITY_AFTERNOON[d % CITY_AFTERNOON.length],
+        title: translate(lang, CITY_AFTERNOON_KEYS[d % CITY_AFTERNOON_KEYS.length]),
         type: 'activitate',
         durationHours: 2.5,
         cost: 15 * people,
         distanceKm: Number((1.5 + (d % 4)).toFixed(1)),
-        tip: 'Ritm relaxat, timp pentru fotografii.',
+        tip: translate(lang, 'itin.tipRelaxedPhotos'),
       });
     } else {
       activities.push({
         id: uid(),
         slot: 'dupa-amiaza',
-        title: 'Timp liber & relaxare',
+        title: translate(lang, 'itin.freeTime'),
         type: 'relaxare',
         durationHours: 2,
         cost: 0,
-        tip: 'Savurează atmosfera locului.',
+        tip: translate(lang, 'itin.tipEnjoyPlace'),
       });
     }
     activities.push({
       id: uid(),
       slot: 'seara',
-      title: `Cină cu specific local în ${city.name}`,
+      title: tf(lang, 'itin.cityDinner', { name: city.name }),
       type: 'masa',
       durationHours: 2,
       cost: 26 * people,
       distanceKm: 1,
-      tip: 'Rezervă din timp în weekend.',
+      tip: translate(lang, 'itin.tipBookWeekend'),
     });
 
-    itineraryDays.push({ day: d + 1, title: dayTitle(d, { name: city.name } as Destination), activities });
+    itineraryDays.push({ day: d + 1, title: dayTitle(d, { name: city.name } as Destination, lang), activities });
   }
 
   return {

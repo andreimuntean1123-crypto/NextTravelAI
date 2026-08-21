@@ -15,18 +15,21 @@ import { cities, continents, cityCountries, totalCities, type Continent } from '
 import { cityCheapestHotel } from '@/lib/cityHotels';
 import { useApp } from '@/context/AppContext';
 import { formatMoney } from '@/lib/format';
+import { continentLabel } from '@/i18n/labels';
+import { countryLabel } from '@/i18n/countries';
+import { localeOf } from '@/i18n/translations';
 
 const PER_PAGE = 48;
 
-const priceTierLabels: Record<1 | 2 | 3, string> = {
-  1: 'Accesibil €',
-  2: 'Mediu €€',
-  3: 'Premium €€€',
-};
-
 export function Cities() {
-  const { currency, isFavorite, toggleFavorite } = useApp();
+  const { currency, isFavorite, toggleFavorite, t, tf, language } = useApp();
   const [params] = useSearchParams();
+
+  const priceTierLabels: Record<1 | 2 | 3, string> = {
+    1: t('cities.priceAffordable'),
+    2: t('cities.priceMedium'),
+    3: t('cities.pricePremium'),
+  };
 
   const [query, setQuery] = useState(params.get('q') ?? '');
   const [continent, setContinent] = useState<Continent | ''>('');
@@ -94,11 +97,13 @@ export function Cities() {
     <div className="container-page py-10">
       <div className="mb-6">
         <h1 className="flex items-center gap-2 text-3xl font-bold">
-          <Globe2 className="text-turquoise-500" /> Orașe populare
+          <Globe2 className="text-turquoise-500" /> {t('cities.title')}
         </h1>
         <p className="mt-1 text-navy-500 dark:text-sand-200/70">
-          {filtered.length.toLocaleString('ro-RO')} din {totalCities.toLocaleString('ro-RO')} orașe •
-          apasă pe un oraș pentru hotelurile disponibile acolo
+          {tf('cities.subtitle', {
+            shown: filtered.length.toLocaleString(localeOf(language)),
+            total: totalCities.toLocaleString(localeOf(language)),
+          })}
         </p>
       </div>
 
@@ -109,7 +114,7 @@ export function Cities() {
           <input
             value={query}
             onChange={(e) => change(() => setQuery(e.target.value))}
-            placeholder="Caută oraș sau țară (ex. Roma, Japonia)..."
+            placeholder={t('cities.searchPlaceholder')}
             className="input-field pl-11"
           />
         </div>
@@ -118,12 +123,12 @@ export function Cities() {
           onChange={(e) => setSort(e.target.value as typeof sort)}
           className="input-field w-auto"
         >
-          <option value="popular">Popularitate</option>
-          <option value="az">Alfabetic (A–Z)</option>
-          <option value="price">Preț</option>
+          <option value="popular">{t('cities.sortPopular')}</option>
+          <option value="az">{t('cities.sortAz')}</option>
+          <option value="price">{t('cities.sortPrice')}</option>
         </select>
         <button onClick={() => setShowFilters((s) => !s)} className="btn-outline px-4 py-2.5 text-sm lg:hidden">
-          <SlidersHorizontal size={16} /> Filtre
+          <SlidersHorizontal size={16} /> {t('common.filters')}
           {activeFilters > 0 && (
             <span className="grid h-5 w-5 place-items-center rounded-full bg-turquoise-500 text-xs text-navy-950">
               {activeFilters}
@@ -137,15 +142,15 @@ export function Cities() {
         <aside className={`${showFilters ? 'block' : 'hidden'} lg:block`}>
           <div className="card-surface sticky top-20 space-y-6 p-5">
             <div className="flex items-center justify-between">
-              <h3 className="font-semibold">Filtre</h3>
+              <h3 className="font-semibold">{t('common.filters')}</h3>
               {activeFilters > 0 && (
                 <button onClick={reset} className="flex items-center gap-1 text-xs text-turquoise-600">
-                  <X size={13} /> Resetează
+                  <X size={13} /> {t('common.reset')}
                 </button>
               )}
             </div>
 
-            <FilterGroup label="Continent">
+            <FilterGroup label={t('cities.continent')}>
               <div className="flex flex-wrap gap-1.5">
                 {continents.map((c) => (
                   <button
@@ -157,46 +162,46 @@ export function Cities() {
                         : 'bg-navy-50 text-navy-600 dark:bg-navy-800 dark:text-sand-200'
                     }`}
                   >
-                    {c}
+                    {continentLabel(language, c)}
                   </button>
                 ))}
               </div>
             </FilterGroup>
 
-            <FilterGroup label="Țară">
+            <FilterGroup label={t('cities.country')}>
               <select
                 value={country}
                 onChange={(e) => change(() => setCountry(e.target.value))}
                 className="input-field py-2 text-sm"
               >
-                <option value="">Toate țările</option>
+                <option value="">{t('cities.allCountries')}</option>
                 {countriesForContinent.map((c) => (
                   <option key={c} value={c}>
-                    {c}
+                    {countryLabel(language, c)}
                   </option>
                 ))}
               </select>
             </FilterGroup>
 
-            <FilterGroup label="Nivel de preț">
+            <FilterGroup label={t('cities.priceLevel')}>
               <div className="flex flex-wrap gap-1.5">
-                {([1, 2, 3] as const).map((t) => (
+                {([1, 2, 3] as const).map((tier) => (
                   <button
-                    key={t}
-                    onClick={() => toggleTier(t)}
+                    key={tier}
+                    onClick={() => toggleTier(tier)}
                     className={`chip text-xs ${
-                      tiers.includes(t)
+                      tiers.includes(tier)
                         ? 'bg-turquoise-500 text-navy-950'
                         : 'bg-navy-50 text-navy-600 dark:bg-navy-800 dark:text-sand-200'
                     }`}
                   >
-                    {priceTierLabels[t]}
+                    {priceTierLabels[tier]}
                   </button>
                 ))}
               </div>
             </FilterGroup>
 
-            <FilterGroup label={`Popularitate minimă: ${minPopularity}%`}>
+            <FilterGroup label={tf('cities.minPopularity', { value: minPopularity })}>
               <input
                 type="range"
                 min={0}
@@ -218,7 +223,7 @@ export function Cities() {
               onClick={() => change(() => { setContinent(''); setCountry(''); })}
               className={`chip text-sm ${continent === '' ? 'bg-turquoise-500 text-navy-950' : 'bg-navy-50 dark:bg-navy-800'}`}
             >
-              Toate
+              {t('cities.all')}
             </button>
             {continents.map((c) => (
               <button
@@ -226,7 +231,7 @@ export function Cities() {
                 onClick={() => change(() => { setContinent(continent === c ? '' : c); setCountry(''); })}
                 className={`chip text-sm ${continent === c ? 'bg-turquoise-500 text-navy-950' : 'bg-navy-50 dark:bg-navy-800'}`}
               >
-                {c}
+                {continentLabel(language, c)}
               </button>
             ))}
           </div>
@@ -234,13 +239,13 @@ export function Cities() {
           {shown.length === 0 ? (
             <div className="card-surface flex flex-col items-center justify-center py-20 text-center">
               <MapPin size={48} className="mb-4 text-navy-300" />
-              <h3 className="text-xl font-semibold">Niciun oraș găsit</h3>
+              <h3 className="text-xl font-semibold">{t('cities.noneFound.title')}</h3>
               <p className="mt-2 max-w-sm text-navy-500 dark:text-sand-200/70">
-                Niciun rezultat pentru criteriile curente. Încearcă să relaxezi filtrele.
+                {t('cities.noneFound.text')}
               </p>
               {activeFilters > 0 && (
                 <button onClick={reset} className="btn-primary mt-5 px-5 py-2.5 text-sm">
-                  Resetează filtrele
+                  {t('common.resetFilters')}
                 </button>
               )}
             </div>
@@ -261,7 +266,7 @@ export function Cities() {
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-navy-950/80 to-transparent" />
                     <span className="absolute right-2 top-2 rounded-full bg-white/85 px-2 py-0.5 text-[10px] font-semibold text-navy-700 backdrop-blur">
-                      {c.continent}
+                      {continentLabel(language, c.continent)}
                     </span>
                     <button
                       onClick={(e) => {
@@ -269,7 +274,7 @@ export function Cities() {
                         e.stopPropagation();
                         toggleFavorite(c.id, `${c.name}, ${c.country}`);
                       }}
-                      aria-label="Adaugă la favorite"
+                      aria-label={t('cities.addFavorite')}
                       className="absolute left-2 top-2 grid h-8 w-8 place-items-center rounded-full bg-white/90 backdrop-blur transition hover:scale-110"
                     >
                       <Heart
@@ -280,13 +285,13 @@ export function Cities() {
                     <div className="absolute bottom-2 left-3 right-3 text-white">
                       <h3 className="font-display text-lg font-semibold drop-shadow">{c.name}</h3>
                       <p className="flex items-center gap-1 text-xs text-sand-100/90">
-                        <MapPin size={11} /> {c.country}
+                        <MapPin size={11} /> {countryLabel(language, c.country)}
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center justify-between p-3 text-sm">
                     <span className="flex items-center gap-1 text-xs text-navy-400">
-                      <BedDouble size={13} /> hoteluri de la
+                      <BedDouble size={13} /> {t('cities.hotelsFrom')}
                     </span>
                     <span className="font-bold text-turquoise-600 dark:text-turquoise-300">
                       {formatMoney(cityCheapestHotel(c), currency)}
@@ -305,17 +310,17 @@ export function Cities() {
                 disabled={current === 0}
                 className="btn-outline px-3 py-2 text-sm"
               >
-                <ChevronLeft size={16} /> Anterior
+                <ChevronLeft size={16} /> {t('cities.previous')}
               </button>
               <span className="px-3 text-sm text-navy-500 dark:text-sand-200/70">
-                Pagina {current + 1} / {pageCount}
+                {tf('cities.page', { current: current + 1, total: pageCount })}
               </span>
               <button
                 onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
                 disabled={current >= pageCount - 1}
                 className="btn-outline px-3 py-2 text-sm"
               >
-                Următor <ChevronRight size={16} />
+                {t('cities.next')} <ChevronRight size={16} />
               </button>
             </div>
           )}

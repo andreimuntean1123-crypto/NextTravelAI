@@ -10,7 +10,7 @@ interface Props {
 }
 
 export function AuthModal({ open, onClose }: Props) {
-  const { signIn } = useApp();
+  const { signIn, t } = useApp();
   const googleRef = useRef<HTMLDivElement>(null);
   const [error, setError] = useState('');
   const [name, setName] = useState('');
@@ -23,11 +23,11 @@ export function AuthModal({ open, onClose }: Props) {
       if (!active) return;
       signIn(u);
       onClose();
-    }).catch(() => setError('Nu s-a putut încărca autentificarea Google.'));
+    }).catch(() => setError(t('auth.googleError')));
     return () => {
       active = false;
     };
-  }, [open, signIn, onClose]);
+  }, [open, signIn, onClose, t]);
 
   const demoSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,9 +42,9 @@ export function AuthModal({ open, onClose }: Props) {
         <span className="mx-auto mb-3 grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-turquoise-400 to-navy-700 text-white">
           <LogIn size={22} />
         </span>
-        <h2 className="text-xl font-bold">Bine ai venit!</h2>
+        <h2 className="text-xl font-bold">{t('auth.welcome')}</h2>
         <p className="mt-1 text-sm text-navy-500 dark:text-sand-200/70">
-          Conectează-te ca să îți salvezi favoritele și itinerarele.
+          {t('auth.subtitle')}
         </p>
       </div>
 
@@ -59,7 +59,7 @@ export function AuthModal({ open, onClose }: Props) {
       {/* Separator */}
       <div className="my-4 flex items-center gap-3 text-xs text-navy-400">
         <span className="h-px flex-1 bg-navy-100 dark:bg-navy-800" />
-        {isGoogleConfigured() ? 'sau cu email' : 'continuă cu email'}
+        {isGoogleConfigured() ? t('auth.orEmail') : t('auth.continueEmail')}
         <span className="h-px flex-1 bg-navy-100 dark:bg-navy-800" />
       </div>
 
@@ -70,7 +70,7 @@ export function AuthModal({ open, onClose }: Props) {
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Numele tău"
+            placeholder={t('auth.namePlaceholder')}
             className="input-field pl-9"
             required
           />
@@ -81,18 +81,18 @@ export function AuthModal({ open, onClose }: Props) {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="email@exemplu.ro"
+            placeholder={t('auth.emailPlaceholder')}
             className="input-field pl-9"
             required
           />
         </div>
         <button type="submit" className="btn-primary w-full py-2.5 text-sm">
-          <LogIn size={16} /> Intră în cont
+          <LogIn size={16} /> {t('auth.enter')}
         </button>
       </form>
 
       <p className="mt-3 text-center text-xs text-navy-400">
-        Datele tale rămân pe acest dispozitiv. {!isGoogleConfigured() && 'Google Sign-In se activează cu VITE_GOOGLE_CLIENT_ID.'}
+        {t('auth.dataLocal')} {!isGoogleConfigured() && t('auth.googleNotConfigured')}
       </p>
     </Modal>
   );
